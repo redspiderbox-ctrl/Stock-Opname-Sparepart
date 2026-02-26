@@ -1,1628 +1,794 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DASHBOARD - Districk KUPANG</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    body { 
-      margin:0; 
-      font-family:Arial, sans-serif; 
-      background:#f4f6f9;
-      padding-top: 80px; /* Memberi ruang untuk header fixed */
-    }
-    header {
-      background:#c60000; 
-      color:#fff; 
-      padding:15px 20px;
-      text-align:center; 
-      font-size:20px; 
-      font-weight:bold;
-      display:flex; 
-      align-items:center; 
-      justify-content:space-between; /* Mengubah justify-content */
-      position: fixed; /* Membuat header tetap di atas */
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000; /* Memastikan header di atas elemen lain */
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2); /* Menambahkan bayangan untuk efek floating */
-    }
-    .header-left {
-      display: flex;
-      align-items: center;
-    }
-    header img { 
-      height:50px; 
-      border-radius:6px; 
-      margin-right: 15px; /* Menambah jarak antara logo dan judul */
-    }
-    .header-title {
-      flex-grow: 1; /* Memungkinkan judul tetap di tengah */
-    }
-    .header-right {
-      width: 65px; /* Menyeimbangkan dengan ukuran logo */
-    }
-    .sidebar {
-      position:fixed; 
-      top:80px; /* Menyesuaikan posisi sidebar di bawah header fixed */
-      left:0; 
-      width:220px; 
-      height:calc(100% - 80px); /* Menyesuaikan tinggi sidebar */
-      background:#000000; 
-      padding-top:20px; /* Mengurangi padding atas */
-      overflow-y: auto; /* Menambahkan scroll jika konten sidebar terlalu panjang */
-    }
-    .sidebar a {
-      display:block; 
-      color:#fff; 
-      padding:12px 20px;
-      text-decoration:none; 
-      font-size:16px;
-      transition: all 0.3s ease; /* Menambahkan transisi untuk efek hover */
-    }
-    .sidebar a:hover { 
-      background:#1abc9c; 
-      padding-left: 25px; /* Efek geser saat hover */
-    }
-    .sidebar a i {
-      margin-right: 10px; /* Memberi jarak antara icon dan teks */
-      width: 20px; /* Menjaga alignment icon */
-      text-align: center;
-    }
-    .content { 
-      margin-left:220px; 
-      padding:20px; 
-    }
-    .card {
-      background:#fff; 
-      padding:20px; 
-      margin-bottom:20px;
-      border-radius:8px; 
-      box-shadow:0 2px 5px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease; /* Efek hover pada card */
-    }
-    .card:hover {
-      transform: translateY(-5px); /* Efek mengangkat card saat hover */
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* Bayangan lebih besar saat hover */
-    }
-    h2 {
-      color: #c60000; /* Warna judul sesuai tema */
-      border-bottom: 2px solid #c60000; /* Garis bawah judul */
-      padding-bottom: 10px;
-      margin-bottom: 20px;
-    }
-    h3 {
-      color: #333;
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-    .settings-section {
-      margin-bottom: 25px;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border-left: 4px solid #c60000;
-    }
-    .settings-section h3 {
-      margin-top: 0;
-      color: #c60000;
-    }
-    .table-wrapper {
-      margin-top: 15px;
-    }
-    .tools-container {
-      position: sticky;
-      top: 0;
-      background: #fff;
-      z-index: 20;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #eee;
-    }
-    .table-container {
-      max-height: 500px; /* Membatasi tinggi tabel */
-      overflow-y: auto; /* Menambahkan scroll vertikal */
-    }
-    table { 
-      width:100%; 
-      border-collapse:collapse; 
-      font-size:14px; 
-      white-space: nowrap; /* Mencegah teks wrap ke baris baru */
-    }
-    table th, table td {
-      border:1px solid #ccc; 
-      padding:8px; /* Menambah padding untuk kenyamanan membaca */
-      text-align: left; /* Default alignment ke kiri */
-    }
-    table th { 
-      background:#c60000; /* Warna header tabel sesuai gambar */
-      color:#fff; 
-      font-weight: bold;
-      position: sticky; /* Membuat header tabel tetap */
-      top: 0; /* Menempel di atas saat scroll */
-      z-index: 10; /* Memastikan header di atas baris data */
-      text-align: center; /* Header tetap rata tengah */
-    }
-    table tr:nth-child(even) { 
-      background:#f9f9f9; 
-    }
-    table tr:hover {
-      background: #e8f4fc; /* Efek hover pada baris tabel */
-    }
-    /* Perubahan untuk alignment tabel */
-    .text-center {
-      text-align: center;
-    }
-    .text-left {
-      text-align: left;
-    }
-    .tools { 
-      display:flex; 
-      gap:20px; 
-      align-items:center; 
-      flex-wrap:wrap;
-      background: #f8f9fa;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    .tools label { 
-      font-weight:bold; 
-      margin-right:8px; 
-      color: #333;
-    }
-    .tools input, .tools select { 
-      padding:8px; 
-      font-size:14px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    .tools input:focus, .tools select:focus {
-      outline: none;
-      border-color: #c60000;
-      box-shadow: 0 0 5px rgba(198, 0, 0, 0.3);
-    }
-    .pagination { 
-      margin-top:15px; 
-      text-align:center; 
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .pagination button {
-      padding:8px 15px; 
-      margin:0 5px;
-      border:none; 
-      border-radius:4px;
-      background:#2c3e50; 
-      color:#fff; 
-      cursor:pointer;
-      transition: all 0.3s ease;
-    }
-    .pagination button:hover {
-      background: #1abc9c;
-    }
-    .pagination button:disabled { 
-      background:#aaa; 
-      cursor:not-allowed; 
-    }
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-    }
-    .pagination-info {
-      flex-grow: 1;
-      text-align: center;
-    }
-    .rows-per-page {
-      display: flex;
-      align-items: center;
-    }
-    input[type="file"] {
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: #f8f9fa;
-      cursor: pointer;
-    }
-    input[type="file"]:hover {
-      background: #e9ecef;
-    }
-    .dropdown-arrow {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-arrow::after {
-      content: '\f078';
-      font-family: 'Font Awesome 6 Free';
-      font-weight: 900;
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-    .status-badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-    .status-pending {
-      background-color: #f39c12;
-      color: white;
-    }
-    .status-approved {
-      background-color: #27ae60;
-      color: white;
-    }
-    .status-rejected {
-      background-color: #e74c3c;
-      color: white;
-    }
-    .status-returned {
-      background-color: #3498db;
-      color: white;
-    }
-    .filter-value {
-      margin-left: 10px;
-      padding: 5px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      width: 80px;
-    }
-    .notification {
-      position: fixed;
-      top: 90px;
-      right: 20px;
-      background: #27ae60;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      z-index: 1001;
-      display: none;
-      animation: slideIn 0.3s ease-out;
-    }
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-    .btn {
-      padding: 8px 15px;
-      background: #c60000;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s ease;
-    }
-    .btn:hover {
-      background: #a30000;
-    }
-    .btn-success {
-      background: #27ae60;
-    }
-    .btn-success:hover {
-      background: #219653;
-    }
-    .btn-danger {
-      background: #e74c3c;
-    }
-    .btn-danger:hover {
-      background: #c0392b;
-    }
-    .file-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Cetak Label QR - POLYTRON KUPANG</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <!-- Library PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Library QR Code (Untuk Preview & PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #b91c1c;
+            --primary-light: #dc2626;
+            --primary-dark: #7f1d1d;
+            --accent: #ef4444;
+            --bg-dark: #0f0f0f;
+            --bg-card: #1a1a1a;
+            --bg-elevated: #242424;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a3a3a3;
+            --text-muted: #737373;
+            --border: #333333;
+            --paper: #fafafa;
+            --success: #22c55e;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background Effects */
+        .bg-pattern {
+            position: fixed; inset: 0; z-index: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(185, 28, 28, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0%, var(--bg-dark) 100%);
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: fixed; inset: 0; z-index: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: fixed; width: 4px; height: 4px;
+            background: var(--primary); border-radius: 50%;
+            pointer-events: none; opacity: 0.3;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            25% { transform: translateY(-100px) translateX(50px); opacity: 0.6; }
+            50% { transform: translateY(-50px) translateX(-30px); opacity: 0.4; }
+            75% { transform: translateY(-150px) translateX(20px); opacity: 0.5; }
+        }
+
+        .main-container {
+            position: relative; z-index: 10;
+            max-width: 1400px; margin: 0 auto;
+            padding: 24px; min-height: 100vh;
+        }
+
+        /* Header */
+        .app-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 28px;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%);
+            border: 1px solid var(--border); border-radius: 16px;
+            margin-bottom: 24px; position: relative; overflow: hidden;
+        }
+        .app-header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary-light));
+        }
+        .header-info h1 {
+            font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .header-info p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+        .header-logo { height: 64px; width: auto; filter: drop-shadow(0 4px 12px rgba(185, 28, 28, 0.3)); transition: transform 0.3s ease; }
+        .header-logo:hover { transform: scale(1.05); }
+
+        /* Tabs */
+        .tabs-container {
+            display: flex; gap: 8px; margin-bottom: 20px; padding: 6px;
+            background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);
+        }
+        .tab-btn {
+            flex: 1; padding: 14px 20px; background: transparent; border: none; border-radius: 8px;
+            color: var(--text-secondary); font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; position: relative;
+        }
+        .tab-btn:hover { color: var(--text-primary); background: var(--bg-elevated); }
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white; box-shadow: 0 4px 20px rgba(185, 28, 28, 0.4);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+            margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .upload-zone { position: relative; overflow: hidden; }
+        .upload-btn {
+            display: flex; align-items: center; gap: 10px; padding: 12px 24px;
+            background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
+            border: 2px dashed var(--border); border-radius: 10px;
+            color: var(--text-primary); font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+        }
+        .upload-btn:hover { border-color: var(--primary); background: linear-gradient(135deg, rgba(185, 28, 28, 0.1) 0%, var(--bg-card) 100%); }
+        .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        
+        .action-btn {
+            display: flex; align-items: center; gap: 8px; padding: 12px 24px;
+            border: none; border-radius: 10px; font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; box-shadow: 0 4px 15px rgba(185, 28, 28, 0.3); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(185, 28, 28, 0.5); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-danger { background: transparent; border: 1px solid var(--border); color: var(--accent); }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--accent); }
+        
+        .stats-badge { padding: 8px 16px; background: var(--bg-elevated); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-secondary); }
+        .stats-badge span { color: var(--primary-light); font-weight: 600; }
+
+        /* Paper Preview */
+        .paper-preview {
+            background: var(--paper); border-radius: 12px; padding: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden; aspect-ratio: 297 / 210; max-height: 65vh; overflow-y: auto;
+        }
+
+        /* Label Grids */
+        .labels-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4mm 3mm; padding: 4px; } /* Diubah jadi 5 kolom karena label lebih lebar */
+        .labels-grid-flex-row { display: flex; flex-wrap: wrap; gap: 4mm 3mm; padding: 4px; }
+        .labels-grid-flex-col { display: flex; flex-direction: column; flex-wrap: wrap; height: 185mm; gap: 4mm 3mm; padding: 4px; align-content: flex-start; }
+
+        /* === LABEL CARD STYLES === */
+        .label-card {
+            background: white;
+            border: 1.5px solid #1a1a1a;
+            border-radius: 2px;
+            height: 14mm;
+            display: flex;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .label-card:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        .label-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--primary); opacity: 0; transition: opacity 0.2s ease; }
+        .label-card:hover::after { opacity: 1; }
+
+        /* Layout untuk Tab 1 dengan QR */
+        .label-card.fixed-mode {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Area Konten Utama (Kiri) */
+        .label-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333; /* Pembatas hitam */
+            min-width: 0;
+        }
+        
+        /* Area QR (Kanan) - Hanya untuk Tab 1 */
+        .label-qr-side {
+            width: 14mm; /* Ukuran QR cukup untuk scan */
+            height: 100%;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1px;
+        }
+
+        .label-qr-side canvas, .label-qr-side img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Sub-parts Layout */
+        .label-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #999; /* Pembatas abu */
+            min-width: 0;
+        }
+
+        .label-top {
+            height: 40%;
+            display: flex; align-items: center; justify-content: center;
+            border-bottom: 1px solid #ccc;
+            padding: 0 4px;
+        }
+        .part-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700; font-size: 9px; color: #1a1a1a;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        
+        .label-bottom {
+            height: 60%;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 4px; overflow: hidden;
+        }
+        .desc-text {
+            font-size: 6px; color: #555; text-align: center;
+            line-height: 1.2; max-width: 100%; overflow: hidden;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        }
+
+        /* Qty Side (Paling Kanan) */
+        .qty-side {
+            width: 10mm;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .qty-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700; font-size: 10px; color: #1a1a1a;
+        }
+
+        /* Flex Large/Small untuk Tab Lain */
+        .label-card.flex-large { min-width: 50mm; max-width: 150mm; flex-shrink: 0; }
+        .label-card.flex-small { min-width: 30mm; max-width: 120mm; flex-shrink: 0; }
+        .flex-large .part-number { font-size: 12px; }
+        .flex-large .desc-text { font-size: 8px; }
+        .flex-large .qty-side { width: 14mm; }
+        .flex-large .qty-text { font-size: 13px; }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 60px 20px; color: #64748b; text-align: center;
+        }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state p { font-size: 0.95rem; font-style: italic; }
+
+        /* Toast */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 14px 20px; border-radius: 10px; color: white; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px; }
+        .toast.success { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .toast.error { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
+        .toast.info { background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .hidden { display: none !important; }
+        .flex-spacer { flex: 1; }
+
+        /* Scrollbar */
+        .paper-preview::-webkit-scrollbar { width: 8px; }
+        .paper-preview::-webkit-scrollbar-track { background: #e5e5e5; border-radius: 4px; }
+        .paper-preview::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container { padding: 16px; }
+            .app-header { flex-direction: column; text-align: center; gap: 16px; }
+            .header-logo { height: 50px; }
+            .tabs-container { flex-direction: column; }
+            .control-panel { flex-direction: column; align-items: stretch; }
+            .paper-preview { aspect-ratio: auto; min-height: 500px; }
+            /* Kembalikan grid ke 6 kolom di mobile jika perlu, atau biarkan responsif */
+            .labels-grid { grid-template-columns: repeat(4, 1fr); } 
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <div class="header-left">
-      <img id="logo" src="" alt="Logo">
-    </div>
-    <div class="header-title">
-      <span>DASHBOARD - Districk KUPANG</span>
-    </div>
-    <div class="header-right">
-      <!-- Ruang kosong untuk keseimbangan -->
-    </div>
-  </header>
+    <div class="bg-pattern"></div>
+    <div class="grid-overlay"></div>
+    
+    <div class="particle" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 80%; top: 30%; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 30%; top: 70%; animation-delay: 4s;"></div>
+    <div class="particle" style="left: 70%; top: 80%; animation-delay: 6s;"></div>
+    <div class="particle" style="left: 50%; top: 40%; animation-delay: 8s;"></div>
 
-  <div class="sidebar">
-    <a href="#" onclick="showPage('master')"><i class="fas fa-cogs"></i> Master Komponen</a>
-    <a href="#" onclick="showPage('stock')"><i class="fas fa-boxes"></i> Stock Komponen</a>
-    <a href="#" onclick="showPage('reservasi')"><i class="fas fa-calendar-check"></i> Reservasi</a>
-    <a href="#" onclick="showPage('service')"><i class="fas fa-headset"></i> Service Calls</a>
-    <a href="#" onclick="showPage('settings')"><i class="fas fa-cog"></i> Pengaturan</a>
-    <a href="#" onclick="showPage('logout')"><i class="fas fa-sign-out-alt"></i> Logout</a>
-  </div>
-
-  <div class="content">
-    <!-- MASTER KOMPONEN -->
-    <div id="master" class="card">
-      <h2><i class="fas fa-cogs"></i> Master Komponen</h2>
-
-      <!-- Import Excel -->
-      <h3><i class="fas fa-file-excel"></i> Import File Excel</h3>
-      <input type="file" id="importMaster" accept=".xlsx,.xls,.csv" onchange="importMasterExcel()" />
-
-      <!-- Wrapper untuk tabel dan tools -->
-      <div class="table-wrapper">
-        <!-- Tools container yang sticky -->
-        <div class="tools-container">
-          <!-- Pencarian + Filter -->
-          <div class="tools">
-            <div>
-              <label for="searchMaster"><i class="fas fa-search"></i> Cari:</label>
-              <input type="text" id="searchMaster" placeholder="Part Number / Description" onkeyup="applyMasterFilter()" />
+    <div class="main-container">
+        <header class="app-header">
+            <div class="header-info">
+                <h1>Sistem Cetak Label QR</h1>
+                <p>POLYTRON KUPANG - Sistem pembuatan label komponen presisi</p>
             </div>
-            <div>
-              <label for="filterPart"><i class="fas fa-filter"></i> Filter Part Number:</label>
-              <select id="filterPart" onchange="applyMasterFilter()">
-                <option value="all">Semua</option>
-              </select>
+            <img src="https://z-cdn-media.chatglm.cn/files/3dcb85ae-3aba-4396-8fa0-5bc9bfe1cf69.png?auth_key=1870198629-02b65d366b90488c9262649819ac83fe-0-059ce65682ed4ea26fb7b0454209dd62" alt="Logo Polytron" class="header-logo">
+        </header>
+
+        <div class="tabs-container">
+            <button class="tab-btn active" id="btn-tab-1" onclick="switchTab(1)">Tab 1: Komponen Kecil (QR)</button>
+            <button class="tab-btn" id="btn-tab-2" onclick="switchTab(2)">Tab 2: Komponen Besar/DOOS</button>
+            <button class="tab-btn" id="btn-tab-3" onclick="switchTab(3)">Tab 3: Modul SET</button>
+        </div>
+
+        <!-- TAB 1 -->
+        <main id="view-tab-1">
+            <section class="control-panel">
+                <div class="upload-zone">
+                    <button class="upload-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Upload Excel
+                    </button>
+                    <input type="file" id="input-file-1" accept=".xlsx, .xls">
+                </div>
+                <div class="flex-spacer"></div>
+                <div class="stats-badge">Total: <span id="stats-1">0</span> Label</div>
+                <button class="action-btn btn-danger hidden" id="btn-reset-1" onclick="resetData(1)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Reset
+                </button>
+                <button class="action-btn btn-primary" id="btn-download-1" disabled onclick="generatePDF(1)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download PDF
+                </button>
+            </section>
+            <div class="paper-preview">
+                <!-- Grid diubah jadi 5 kolom agar muat QR -->
+                <div class="labels-grid" id="grid-1"> 
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                        <p>Upload file Excel untuk membuat label</p>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
+        </main>
 
-        <!-- Tabel dengan container -->
-        <div class="table-container">
-          <table id="masterTable">
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Part Number</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
+        <!-- TAB 2 -->
+        <main id="view-tab-2" class="hidden">
+            <section class="control-panel">
+                <div class="upload-zone">
+                    <button class="upload-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Excel</button>
+                    <input type="file" id="input-file-2" accept=".xlsx, .xls">
+                </div>
+                <div class="flex-spacer"></div>
+                <div class="stats-badge">Total: <span id="stats-2">0</span> Label</div>
+                <button class="action-btn btn-danger hidden" id="btn-reset-2" onclick="resetData(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reset</button>
+                <button class="action-btn btn-primary" id="btn-download-2" disabled onclick="generatePDF(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</button>
+            </section>
+            <div class="paper-preview">
+                <div class="labels-grid-flex-row" id="grid-2"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><p>Upload file Excel untuk membuat label</p></div></div>
+            </div>
+        </main>
 
-      <!-- Pagination -->
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button id="prevMaster" onclick="prevMasterPage()"><i class="fas fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="pagination-info">
-          <span id="pageInfoMaster"></span>
-        </div>
-        <div class="rows-per-page">
-          <label for="rowsPerPageMaster">Baris per halaman:</label>
-          <select id="rowsPerPageMaster" onchange="changeRowsPerPageMaster()">
-            <option value="10">10</option>
-            <option value="15" selected>15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <button id="nextMaster" onclick="nextMasterPage()">Next <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
+        <!-- TAB 3 -->
+        <main id="view-tab-3" class="hidden">
+            <section class="control-panel">
+                <div class="upload-zone">
+                    <button class="upload-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Excel</button>
+                    <input type="file" id="input-file-3" accept=".xlsx, .xls">
+                </div>
+                <div class="flex-spacer"></div>
+                <div class="stats-badge">Total: <span id="stats-3">0</span> Label</div>
+                <button class="action-btn btn-danger hidden" id="btn-reset-3" onclick="resetData(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reset</button>
+                <button class="action-btn btn-primary" id="btn-download-3" disabled onclick="generatePDF(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</button>
+            </section>
+            <div class="paper-preview">
+                <div class="labels-grid-flex-col" id="grid-3"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><p>Upload file Excel untuk membuat label</p></div></div>
+            </div>
+        </main>
     </div>
 
-    <!-- STOCK SPAREPART -->
-    <div id="stock" class="card" style="display:none;">
-      <h2><i class="fas fa-boxes"></i> Data Stock Komponen</h2>
+    <div id="toast-container"></div>
 
-      <!-- Import Excel -->
-      <h3><i class="fas fa-file-excel"></i> Import File Excel</h3>
-      <input type="file" id="importFile" accept=".xlsx,.xls,.csv" onchange="importExcel()" />
-      
-      <!-- Download Excel -->
-      <div class="file-actions">
-        <button class="btn btn-success" onclick="exportStockToExcel()">
-          <i class="fas fa-download"></i> Download Excel
-        </button>
-      </div>
+    <script>
+        // State & Config Initialization
+        const state = { 1: { raw: [], processed: [] }, 2: { raw: [], processed: [] }, 3: { raw: [], processed: [] } };
+        const CFG = {
+            pageW: 297, pageH: 210, margin: 10, labelH: 14, gapX: 3, gapY: 4,
+            tab1_cols: 5, // Dikurangi jadi 5 kolom karena label lebih lebar (ada QR)
+            qtySideW: 10, qrSideW: 14, // Lebar QR
+            logoUrl: "https://z-cdn-media.chatglm.cn/files/3dcb85ae-3aba-4396-8fa0-5bc9bfe1cf69.png?auth_key=1870198629-02b65d366b90488c9262649819ac83fe-0-059ce65682ed4ea26fb7b0454209dd62"
+        };
 
-      <!-- Wrapper untuk tabel dan tools -->
-      <div class="table-wrapper">
-        <!-- Tools container yang sticky -->
-        <div class="tools-container">
-          <div class="tools">
-            <div>
-              <label for="filterLokasi"><i class="fas fa-filter"></i> Filter Tipe Lokasi:</label>
-              <select id="filterLokasi" onchange="applyFilter()">
-                <option value="all">Semua</option>
-              </select>
-            </div>
-            <div>
-              <label for="searchInput"><i class="fas fa-search"></i> Cari:</label>
-              <input type="text" id="searchInput" placeholder="Nama / Part / Deskripsi" onkeyup="applyFilter()" />
-            </div>
-          </div>
-        </div>
+        // Event Listeners
+        document.getElementById('input-file-1').addEventListener('change', (e) => handleFile(e, 1));
+        document.getElementById('input-file-2').addEventListener('change', (e) => handleFile(e, 2));
+        document.getElementById('input-file-3').addEventListener('change', (e) => handleFile(e, 3));
 
-        <!-- Tabel dengan container -->
-        <div class="table-container">
-          <table id="stockTable">
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Tipe Lokasi</th>
-                <th>Nama</th>
-                <th>Part</th>
-                <th>Deskripsi Part</th>
-                <th>QTY</th>
-                <th>QTY Alloc</th>
-                <th>Available QTY</th>
-                <th>Return To Factory</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button id="prevBtn" onclick="prevPage()"><i class="fas fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="pagination-info">
-          <span id="pageInfo"></span>
-        </div>
-        <div class="rows-per-page">
-          <label for="rowsPerPage">Baris per halaman:</label>
-          <select id="rowsPerPage" onchange="changeRowsPerPage()">
-            <option value="10">10</option>
-            <option value="15" selected>15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <button id="nextBtn" onclick="nextPage()">Next <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RESERVASI -->
-    <div id="reservasi" class="card" style="display:none;">
-      <h2><i class="fas fa-calendar-check"></i> Reservasi Komponen</h2>
-
-      <h3><i class="fas fa-file-excel"></i> Import File Excel</h3>
-      <input type="file" id="importReservasi" accept=".xlsx,.xls,.csv" onchange="importReservasiExcel()" />
-      
-      <!-- Download Excel -->
-      <div class="file-actions">
-        <button class="btn btn-success" onclick="exportReservasiToExcel()">
-          <i class="fas fa-download"></i> Download Excel
-        </button>
-      </div>
-      
-      <!-- Wrapper untuk tabel dan tools -->
-      <div class="table-wrapper">
-        <!-- Tools container yang sticky -->
-        <div class="tools-container">
-          <!-- Pencarian + Filter -->
-          <div class="tools">
-            <div>
-              <label for="searchReservasi"><i class="fas fa-search"></i> Cari:</label>
-              <input type="text" id="searchReservasi" placeholder="Nomor / Catatan / Part" onkeyup="applyReservasiFilter()" />
-            </div>
-            <div>
-              <label for="filterTeknisi"><i class="fas fa-filter"></i> Filter Berdasarkan Teknisi Perbaikan:</label>
-              <select id="filterTeknisi" onchange="applyReservasiFilter()">
-                <option value="all">Semua</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabel dengan container -->
-        <div class="table-container">
-          <table id="reservasiTable">
-            <thead>
-              <tr>
-                <th>Nomor</th>
-                <th>Catatan</th>
-                <th>Part</th>
-                <th>Qty Reservasi</th>
-                <th>Qty Transaksi</th>
-                <th>Qty Close</th>
-                <th>Part Demand</th>
-                <th>Serial Number</th>
-                <th>Return To Factory</th>
-                <th>Teknisi Perbaikan</th>
-                <th>Analisa SA</th>
-                <th>Disetujui Pada</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button id="prevReservasi" onclick="prevReservasiPage()"><i class="fas fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="pagination-info">
-          <span id="pageInfoReservasi"></span>
-        </div>
-        <div class="rows-per-page">
-          <label for="rowsPerPageReservasi">Baris per halaman:</label>
-          <select id="rowsPerPageReservasi" onchange="changeRowsPerPageReservasi()">
-            <option value="10">10</option>
-            <option value="15" selected>15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <button id="nextReservasi" onclick="nextReservasiPage()">Next <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SERVICE CALLS -->
-    <div id="service" class="card" style="display:none;">
-      <h2><i class="fas fa-headset"></i> Service Calls</h2>
-
-      <h3><i class="fas fa-file-excel"></i> Import File Excel</h3>
-      <input type="file" id="importService" accept=".xlsx,.xls,.csv" onchange="importServiceExcel()" />
-      
-      <!-- Download Excel -->
-      <div class="file-actions">
-        <button class="btn btn-success" onclick="exportServiceToExcel()">
-          <i class="fas fa-download"></i> Download Excel
-        </button>
-      </div>
-      
-      <!-- Wrapper untuk tabel dan tools -->
-      <div class="table-wrapper">
-        <!-- Tools container yang sticky -->
-        <div class="tools-container">
-          <!-- Pencarian + Filter -->
-          <div class="tools">
-            <div>
-              <label for="searchService"><i class="fas fa-search"></i> Cari:</label>
-              <input type="text" id="searchService" placeholder="Nomor Service Call / Nama Pemilik" onkeyup="applyServiceFilter()" />
-            </div>
-            <div>
-              <label for="filterJenisLayanan"><i class="fas fa-filter"></i> Filter Jenis Layanan:</label>
-              <select id="filterJenisLayanan" onchange="applyServiceFilter()">
-                <option value="all">Semua</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabel dengan container -->
-        <div class="table-container">
-          <table id="serviceTable">
-            <thead>
-              <tr>
-                <th>Tanggal Pendaftaran</th>
-                <th>Nomor Service Call</th>
-                <th>Jenis Layanan</th>
-                <th>Jenis Garansi</th>
-                <th>Tipe Demand</th>
-                <th>Nomor Seri</th>
-                <th>Nama Pemilik</th>
-                <th>Alamat Pemilik</th>
-                <th>Nama Teknisi</th>
-                <th>Tanggal Serah Terima</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button id="prevService" onclick="prevServicePage()"><i class="fas fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="pagination-info">
-          <span id="pageInfoService"></span>
-        </div>
-        <div class="rows-per-page">
-          <label for="rowsPerPageService">Baris per halaman:</label>
-          <select id="rowsPerPageService" onchange="changeRowsPerPageService()">
-            <option value="10">10</option>
-            <option value="15" selected>15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <button id="nextService" onclick="nextServicePage()">Next <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PENGATURAN -->
-    <div id="settings" class="card" style="display:none;">
-      <h2><i class="fas fa-cog"></i> Pengaturan</h2>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-image"></i> Upload Logo</h3>
-        <input type="file" id="logoInput" accept="image/*" onchange="changeLogo()" />
-        <p>Logo yang diupload akan tampil di bagian header dashboard.</p>
-      </div>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-database"></i> Pengaturan Database</h3>
-        <p>Pengaturan koneksi dan manajemen database.</p>
-      </div>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-user-cog"></i> Pengaturan Pengguna</h3>
-        <p>Kelola pengguna, hak akses, dan izin.</p>
-      </div>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-bell"></i> Notifikasi</h3>
-        <p>Konfigurasi notifikasi dan pengingat sistem.</p>
-      </div>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-save"></i> Penyimpanan Data</h3>
-        <p>Data akan otomatis tersimpan di browser (localStorage) setiap kali ada perubahan.</p>
-        <button class="btn btn-danger" onclick="clearAllData()">Hapus Semua Data Tersimpan</button>
-      </div>
-    </div>
-
-    <!-- LOGOUT -->
-    <div id="logout" class="card" style="display:none;">
-      <h2><i class="fas fa-sign-out-alt"></i> Logout</h2>
-      <p>Anda telah keluar dari sistem.</p>
-    </div>
-  </div>
-
-  <!-- Notification -->
-  <div id="notification" class="notification"></div>
-
-  <script>
-    // ---- GLOBAL FUNCTION ----
-    function showPage(pageId) {
-      const pages = document.querySelectorAll('.card');
-      pages.forEach(p => p.style.display = "none");
-      document.getElementById(pageId).style.display = "block";
-    }
-
-    // ---- NOTIFICATION ----
-    function showNotification(message, duration = 3000) {
-      const notification = document.getElementById('notification');
-      notification.textContent = message;
-      notification.style.display = 'block';
-      
-      setTimeout(() => {
-        notification.style.display = 'none';
-      }, duration);
-    }
-
-    // ---- LOCAL STORAGE MANAGEMENT ----
-    function saveToLocalStorage(key, data) {
-      try {
-        localStorage.setItem(key, JSON.stringify(data));
-        showNotification('Data berhasil disimpan!');
-      } catch (e) {
-        console.error('Gagal menyimpan data ke localStorage:', e);
-        showNotification('Gagal menyimpan data!', 5000);
-      }
-    }
-
-    function loadFromLocalStorage(key, defaultValue = []) {
-      try {
-        const data = localStorage.getItem(key);
-        return data ? JSON.parse(data) : defaultValue;
-      } catch (e) {
-        console.error('Gagal memuat data dari localStorage:', e);
-        return defaultValue;
-      }
-    }
-
-    function clearAllData() {
-      if (confirm('Apakah Anda yakin ingin menghapus semua data tersimpan?')) {
-        localStorage.removeItem('masterData');
-        localStorage.removeItem('stockData');
-        localStorage.removeItem('reservasiData');
-        localStorage.removeItem('serviceData');
-        showNotification('Semua data berhasil dihapus!');
-        
-        // Reset data di memori
-        masterData = [];
-        filteredMaster = [];
-        allData = [];
-        filteredStock = [];
-        reservasiData = [];
-        filteredReservasi = [];
-        serviceData = [];
-        filteredService = [];
-        
-        // Render ulang tabel
-        if (document.getElementById('master').style.display !== 'none') {
-          renderMasterTable();
-        } else if (document.getElementById('stock').style.display !== 'none') {
-          renderTable();
-        } else if (document.getElementById('reservasi').style.display !== 'none') {
-          renderReservasiTable();
-        } else if (document.getElementById('service').style.display !== 'none') {
-          renderServiceTable();
+        function switchTab(tabId) {
+            [1, 2, 3].forEach(id => {
+                document.getElementById(`view-tab-${id}`).classList.add('hidden');
+                document.getElementById(`btn-tab-${id}`).classList.remove('active');
+            });
+            document.getElementById(`view-tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-tab-${tabId}`).classList.add('active');
         }
-      }
-    }
-
-    // ---- EXPORT TO EXCEL ----
-    function exportStockToExcel() {
-      if (filteredStock.length === 0) {
-        showNotification('Tidak ada data untuk diekspor!', 5000);
-        return;
-      }
-
-      // Buat workbook baru
-      const wb = XLSX.utils.book_new();
-      
-      // Buat worksheet dari data
-      const ws = XLSX.utils.json_to_sheet(filteredStock.map((row, index) => {
-        return {
-          "No.": index + 1,
-          "Tipe Lokasi": row[stockIndexMap[1]] || "",
-          "Nama": row[stockIndexMap[2]] || "",
-          "Part": row[stockIndexMap[3]] || "",
-          "Deskripsi Part": row[stockIndexMap[4]] || "",
-          "QTY": row[stockIndexMap[5]] || "",
-          "QTY Alloc": row[stockIndexMap[6]] || "",
-          "Available QTY": row[stockIndexMap[7]] || "",
-          "Return To Factory": row[stockIndexMap[8]] || ""
-        };
-      }));
-      
-      // Tambahkan worksheet ke workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Stock Komponen");
-      
-      // Generate nama file dengan timestamp
-      const now = new Date();
-      const timestamp = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0') + '_' +
-                      String(now.getHours()).padStart(2, '0') + 
-                      String(now.getMinutes()).padStart(2, '0');
-      const fileName = `Data_Stock_Komponen_${timestamp}.xlsx`;
-      
-      // Download file
-      XLSX.writeFile(wb, fileName);
-      
-      showNotification('Data berhasil diekspor ke Excel!');
-    }
-
-    // ---- EXPORT RESERVASI TO EXCEL ----
-    function exportReservasiToExcel() {
-      if (filteredReservasi.length === 0) {
-        showNotification('Tidak ada data untuk diekspor!', 5000);
-        return;
-      }
-
-      // Buat workbook baru
-      const wb = XLSX.utils.book_new();
-      
-      // Buat worksheet dari data
-      const ws = XLSX.utils.json_to_sheet(filteredReservasi.map((row, index) => {
-        return {
-          "No.": index + 1,
-          "Nomor": row[reservasiIndexMap[0]] || "",
-          "Catatan": row[reservasiIndexMap[1]] || "",
-          "Part": row[reservasiIndexMap[2]] || "",
-          "Qty Reservasi": row[reservasiIndexMap[3]] || "",
-          "Qty Transaksi": row[reservasiIndexMap[4]] || "",
-          "Qty Close": row[reservasiIndexMap[5]] || "",
-          "Part Demand": row[reservasiIndexMap[6]] || "",
-          "Serial Number": row[reservasiIndexMap[7]] || "",
-          "Return To Factory": row[reservasiIndexMap[8]] || "",
-          "Teknisi Perbaikan": row[reservasiIndexMap[9]] || "",
-          "Analisa SA": row[reservasiIndexMap[10]] || "",
-          "Disetujui Pada": formatDateTime(row[reservasiIndexMap[11]])
-        };
-      }));
-      
-      // Tambahkan worksheet ke workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Reservasi Komponen");
-      
-      // Generate nama file dengan timestamp
-      const now = new Date();
-      const timestamp = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0') + '_' +
-                      String(now.getHours()).padStart(2, '0') + 
-                      String(now.getMinutes()).padStart(2, '0');
-      const fileName = `Data_Reservasi_Komponen_${timestamp}.xlsx`;
-      
-      // Download file
-      XLSX.writeFile(wb, fileName);
-      
-      showNotification('Data reservasi berhasil diekspor ke Excel!');
-    }
-
-    // ---- EXPORT SERVICE TO EXCEL ----
-    function exportServiceToExcel() {
-      if (filteredService.length === 0) {
-        showNotification('Tidak ada data untuk diekspor!', 5000);
-        return;
-      }
-
-      // Buat workbook baru
-      const wb = XLSX.utils.book_new();
-      
-      // Buat worksheet dari data
-      const ws = XLSX.utils.json_to_sheet(filteredService.map((row, index) => {
-        return {
-          "No.": index + 1,
-          "Tanggal Pendaftaran": formatDateOnly(row[serviceIndexMap[0]]),
-          "Nomor Service Call": row[serviceIndexMap[1]] || "",
-          "Jenis Layanan": row[serviceIndexMap[2]] || "",
-          "Jenis Garansi": row[serviceIndexMap[3]] || "",
-          "Tipe Demand": row[serviceIndexMap[4]] || "",
-          "Nomor Seri": row[serviceIndexMap[5]] || "",
-          "Nama Pemilik": row[serviceIndexMap[6]] || "",
-          "Alamat Pemilik": row[serviceIndexMap[7]] || "",
-          "Nama Teknisi": row[serviceIndexMap[8]] || "",
-          "Tanggal Serah Terima": formatDateTime(row[serviceIndexMap[9]])
-        };
-      }));
-      
-      // Tambahkan worksheet ke workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Service Calls");
-      
-      // Generate nama file dengan timestamp
-      const now = new Date();
-      const timestamp = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0') + '_' +
-                      String(now.getHours()).padStart(2, '0') + 
-                      String(now.getMinutes()).padStart(2, '0');
-      const fileName = `Data_Service_Calls_${timestamp}.xlsx`;
-      
-      // Download file
-      XLSX.writeFile(wb, fileName);
-      
-      showNotification('Data service calls berhasil diekspor ke Excel!');
-    }
-
-    // ---- LOGO ----
-    function changeLogo() {
-      const file = document.getElementById("logoInput").files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById("logo").src = e.target.result;
-          localStorage.setItem("dashboardLogo", e.target.result); // simpan di local storage
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    // ---- FUNGSI FORMAT TANGGAL ----
-    function formatDateTime(dateString) {
-      if (!dateString) return "";
-      
-      // Jika dateString adalah objek Date Excel (angka)
-      if (typeof dateString === 'number') {
-        const date = new Date((dateString - 25569) * 86400 * 1000);
-        return formatDateObject(date);
-      }
-      
-      // Coba parsing sebagai string tanggal
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString; // Kembalikan asli jika tidak bisa diparsing
-      }
-      
-      return formatDateObject(date);
-    }
-    
-    function formatDateObject(date) {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      
-      return `${day}/${month}/${year} ${hours}:${minutes}`;
-    }
-    
-    // ---- FUNGSI FORMAT TANGGAL SAJA (TANPA JAM) ----
-    function formatDateOnly(dateString) {
-      if (!dateString) return "";
-      
-      // Jika dateString adalah objek Date Excel (angka)
-      if (typeof dateString === 'number') {
-        const date = new Date((dateString - 25569) * 86400 * 1000);
-        return formatDateOnlyObject(date);
-      }
-      
-      // Coba parsing sebagai string tanggal
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString; // Kembalikan asli jika tidak bisa diparsing
-      }
-      
-      return formatDateOnlyObject(date);
-    }
-    
-    function formatDateOnlyObject(date) {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      
-      return `${day}/${month}/${year}`;
-    }
-
-    // ---- MASTER KOMPONEN ----
-    let masterData = [];
-    let filteredMaster = [];
-    let currentMasterPage = 1;
-    let rowsPerPageMaster = 15; // Diubah dari 20 menjadi 15
-
-    function importMasterExcel() {
-      const file = document.getElementById('importMaster').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header:1});
-
-        const headers = ["No.","Part Number","Description"];
-        const excelHeaders = json[0].map(h => h.toString().trim());
-        let indexMap = headers.map(h => excelHeaders.indexOf(h));
-
-        masterData = json.slice(1).filter(r => r.length > 0).map(r => [
-          r[indexMap[1]] || "",
-          r[indexMap[2]] || ""
-        ]);
-
-        // Simpan ke localStorage
-        saveToLocalStorage('masterData', masterData);
-        
-        updatePartFilter(masterData);
-        filteredMaster = masterData;
-        currentMasterPage = 1;
-        renderMasterTable();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function updatePartFilter(data) {
-      const select = document.getElementById("filterPart");
-      select.innerHTML = '<option value="all">Semua</option>';
-      const initials = new Set();
-      data.forEach(row => {
-        if (row[0]) initials.add(row[0].toString().charAt(0).toUpperCase());
-      });
-      [...initials].sort().forEach(l => {
-        let opt = document.createElement("option");
-        opt.value = l;
-        opt.textContent = l;
-        select.appendChild(opt);
-      });
-    }
-
-    function renderMasterTable() {
-      const tbody = document.getElementById("masterTable").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      const start = (currentMasterPage - 1) * rowsPerPageMaster;
-      const end = start + rowsPerPageMaster;
-      const pageData = filteredMaster.slice(start, end);
-
-      pageData.forEach((row, i) => {
-        let newRow = tbody.insertRow();
-        
-        // Kolom No. (rata kiri)
-        let cellNo = newRow.insertCell();
-        cellNo.textContent = start + i + 1;
-        cellNo.className = "text-left";
-        
-        // Kolom Part Number (rata kiri)
-        let cellPart = newRow.insertCell();
-        cellPart.textContent = row[0];
-        cellPart.className = "text-left";
-        
-        // Kolom Description (rata kiri)
-        let cellDesc = newRow.insertCell();
-        cellDesc.textContent = row[1];
-        cellDesc.className = "text-left";
-      });
-
-      document.getElementById("pageInfoMaster").textContent =
-        `Halaman ${currentMasterPage} dari ${Math.ceil(filteredMaster.length / rowsPerPageMaster)}`;
-
-      document.getElementById("prevMaster").disabled = currentMasterPage === 1;
-      document.getElementById("nextMaster").disabled = end >= filteredMaster.length;
-    }
-
-    function applyMasterFilter() {
-      const searchVal = document.getElementById("searchMaster").value.toLowerCase();
-      const filterVal = document.getElementById("filterPart").value;
-
-      filteredMaster = masterData;
-
-      if (filterVal !== "all") {
-        filteredMaster = filteredMaster.filter(r => r[0].toString().toUpperCase().startsWith(filterVal));
-      }
-
-      if (searchVal) {
-        filteredMaster = filteredMaster.filter(r => {
-          return (
-            (r[0] && r[0].toString().toLowerCase().includes(searchVal)) ||
-            (r[1] && r[1].toString().toLowerCase().includes(searchVal))
-          );
-        });
-      }
-
-      currentMasterPage = 1;
-      renderMasterTable();
-    }
-
-    function prevMasterPage() {
-      if (currentMasterPage > 1) {
-        currentMasterPage--;
-        renderMasterTable();
-      }
-    }
-
-    function nextMasterPage() {
-      if (currentMasterPage * rowsPerPageMaster < filteredMaster.length) {
-        currentMasterPage++;
-        renderMasterTable();
-      }
-    }
-
-    function changeRowsPerPageMaster() {
-      rowsPerPageMaster = parseInt(document.getElementById("rowsPerPageMaster").value);
-      currentMasterPage = 1;
-      renderMasterTable();
-    }
-
-    // ---- STOCK KOMPONEN ----
-    let stockIndexMap = [];
-    let filteredStock = [];
-    let currentStockPage = 1;
-    let rowsPerPageStock = 15; // Diubah dari 20 menjadi 15
-
-    function importExcel() {
-      const file = document.getElementById('importFile').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header:1});
-
-        const headers = ["No.","Tipe Lokasi","Nama","Part","Deskripsi Part","QTY","QTY Alloc","Available QTY","Return To Factory"];
-        const excelHeaders = json[0].map(h => h.toString().trim());
-        stockIndexMap = headers.map(h => excelHeaders.indexOf(h));
-
-        allData = json.slice(1).filter(r => r.length > 0);
-        
-        // Simpan ke localStorage
-        saveToLocalStorage('stockData', allData);
-        
-        filteredStock = allData;
-
-        updateFilterOptions(allData);
-        currentStockPage = 1;
-        renderTable();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById("stockTable").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      const start = (currentStockPage - 1) * rowsPerPageStock;
-      const end = start + rowsPerPageStock;
-      const pageData = filteredStock.slice(start, end);
-
-      pageData.forEach((row, i) => {
-        let newRow = tbody.insertRow();
-        
-        // Kolom No. (rata kiri)
-        let cellNo = newRow.insertCell();
-        cellNo.textContent = start + i + 1;
-        cellNo.className = "text-left";
-        
-        // Kolom Tipe Lokasi (rata kiri)
-        let cellTipe = newRow.insertCell();
-        cellTipe.textContent = row[stockIndexMap[1]] || "";
-        cellTipe.className = "text-left";
-        
-        // Kolom Nama (rata kiri)
-        let cellNama = newRow.insertCell();
-        cellNama.textContent = row[stockIndexMap[2]] || "";
-        cellNama.className = "text-left";
-        
-        // Kolom Part (rata kiri)
-        let cellPart = newRow.insertCell();
-        cellPart.textContent = row[stockIndexMap[3]] || "";
-        cellPart.className = "text-left";
-        
-        // Kolom Deskripsi Part (rata kiri)
-        let cellDesc = newRow.insertCell();
-        cellDesc.textContent = row[stockIndexMap[4]] || "";
-        cellDesc.className = "text-left";
-        
-        // Kolom QTY (rata kiri)
-        let cellQty = newRow.insertCell();
-        cellQty.textContent = row[stockIndexMap[5]] || "";
-        cellQty.className = "text-left";
-        
-        // Kolom QTY Alloc (rata kiri)
-        let cellAlloc = newRow.insertCell();
-        cellAlloc.textContent = row[stockIndexMap[6]] || "";
-        cellAlloc.className = "text-left";
-        
-        // Kolom Available QTY (rata kiri)
-        let cellAvailable = newRow.insertCell();
-        cellAvailable.textContent = row[stockIndexMap[7]] || "";
-        cellAvailable.className = "text-left";
-        
-        // Kolom Return To Factory (rata kiri)
-        let cellReturn = newRow.insertCell();
-        cellReturn.textContent = row[stockIndexMap[8]] || "";
-        cellReturn.className = "text-left";
-      });
-
-      document.getElementById("pageInfo").textContent =
-        `Halaman ${currentStockPage} dari ${Math.ceil(filteredStock.length / rowsPerPageStock)}`;
-
-      document.getElementById("prevBtn").disabled = currentStockPage === 1;
-      document.getElementById("nextBtn").disabled = end >= filteredStock.length;
-    }
-
-    function updateFilterOptions(data) {
-      const lokasiSet = new Set();
-      data.forEach(row => {
-        const val = row[stockIndexMap[1]];
-        if (val) lokasiSet.add(val);
-      });
-
-      const select = document.getElementById("filterLokasi");
-      select.innerHTML = '<option value="all">Semua</option>';
-      lokasiSet.forEach(l => {
-        let opt = document.createElement("option");
-        opt.value = l;
-        opt.textContent = l;
-        select.appendChild(opt);
-      });
-    }
-
-    function applyFilter() {
-      const filterVal = document.getElementById("filterLokasi").value;
-      const searchVal = document.getElementById("searchInput").value.toLowerCase();
-
-      filteredStock = allData;
-
-      if (filterVal !== "all") {
-        filteredStock = filteredStock.filter(r => r[stockIndexMap[1]] == filterVal);
-      }
-
-      if (searchVal) {
-        filteredStock = filteredStock.filter(r => {
-          return (
-            (r[stockIndexMap[2]] && r[stockIndexMap[2]].toString().toLowerCase().includes(searchVal)) ||
-            (r[stockIndexMap[3]] && r[stockIndexMap[3]].toString().toLowerCase().includes(searchVal)) ||
-            (r[stockIndexMap[4]] && r[stockIndexMap[4]].toString().toLowerCase().includes(searchVal))
-          );
-        });
-      }
-
-      currentStockPage = 1;
-      renderTable();
-    }
-
-    function prevPage() {
-      if (currentStockPage > 1) {
-        currentStockPage--;
-        renderTable();
-      }
-    }
-
-    function nextPage() {
-      if (currentStockPage * rowsPerPageStock < filteredStock.length) {
-        currentStockPage++;
-        renderTable();
-      }
-    }
-
-    function changeRowsPerPage() {
-      rowsPerPageStock = parseInt(document.getElementById("rowsPerPage").value);
-      currentStockPage = 1;
-      renderTable();
-    }
-
-    // ---- RESERVASI ----
-    let reservasiData = [];
-    let reservasiIndexMap = [];
-    let filteredReservasi = [];
-    let currentReservasiPage = 1;
-    let rowsPerPageReservasi = 15;
-
-    function importReservasiExcel() {
-      const file = document.getElementById('importReservasi').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header:1});
-
-        const headers = ["Nomor","Catatan","Part","Qty Reservasi","Qty Transaksi","Qty Close","Part Demand","Serial Number","Return To Factory","Teknisi Perbaikan","Analisa SA","Disetujui Pada"];
-        const excelHeaders = json[0].map(h => h.toString().trim());
-        reservasiIndexMap = headers.map(h => excelHeaders.indexOf(h));
-
-        reservasiData = json.slice(1).filter(r => r.length > 0);
-        
-        // Simpan ke localStorage
-        saveToLocalStorage('reservasiData', reservasiData);
-        
-        filteredReservasi = reservasiData;
-        currentReservasiPage = 1;
-        
-        updateTeknisiFilter(reservasiData);
-        renderReservasiTable();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function updateTeknisiFilter(data) {
-      const teknisiSet = new Set();
-      data.forEach(row => {
-        const val = row[reservasiIndexMap[9]]; // Teknisi Perbaikan
-        if (val) teknisiSet.add(val);
-      });
-
-      const select = document.getElementById("filterTeknisi");
-      select.innerHTML = '<option value="all">Semua</option>';
-      [...teknisiSet].sort().forEach(t => {
-        let opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        select.appendChild(opt);
-      });
-    }
-
-    function renderReservasiTable() {
-      const tbody = document.getElementById("reservasiTable").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      const start = (currentReservasiPage - 1) * rowsPerPageReservasi;
-      const end = start + rowsPerPageReservasi;
-      const pageData = filteredReservasi.slice(start, end);
-
-      pageData.forEach((row, i) => {
-        let newRow = tbody.insertRow();
-        
-        // Kolom Nomor (rata kiri)
-        let cellNomor = newRow.insertCell();
-        cellNomor.textContent = row[reservasiIndexMap[0]] || "";
-        cellNomor.className = "text-left";
-        
-        // Kolom Catatan (rata kiri)
-        let cellCatatan = newRow.insertCell();
-        cellCatatan.textContent = row[reservasiIndexMap[1]] || "";
-        cellCatatan.className = "text-left";
-        
-        // Kolom Part (rata kiri)
-        let cellPart = newRow.insertCell();
-        cellPart.textContent = row[reservasiIndexMap[2]] || "";
-        cellPart.className = "text-left";
-        
-        // Kolom Qty Reservasi (rata kiri)
-        let cellQtyReservasi = newRow.insertCell();
-        cellQtyReservasi.textContent = row[reservasiIndexMap[3]] || "";
-        cellQtyReservasi.className = "text-left";
-        
-        // Kolom Qty Transaksi (rata kiri)
-        let cellQtyTransaksi = newRow.insertCell();
-        cellQtyTransaksi.textContent = row[reservasiIndexMap[4]] || "";
-        cellQtyTransaksi.className = "text-left";
-        
-        // Kolom Qty Close (rata kiri)
-        let cellQtyClose = newRow.insertCell();
-        cellQtyClose.textContent = row[reservasiIndexMap[5]] || "";
-        cellQtyClose.className = "text-left";
-        
-        // Kolom Part Demand (rata kiri)
-        let cellPartDemand = newRow.insertCell();
-        cellPartDemand.textContent = row[reservasiIndexMap[6]] || "";
-        cellPartDemand.className = "text-left";
-        
-        // Kolom Serial Number (rata kiri)
-        let cellSerial = newRow.insertCell();
-        cellSerial.textContent = row[reservasiIndexMap[7]] || "";
-        cellSerial.className = "text-left";
-        
-        // Kolom Return To Factory (rata kiri)
-        let cellReturn = newRow.insertCell();
-        cellReturn.textContent = row[reservasiIndexMap[8]] || "";
-        cellReturn.className = "text-left";
-        
-        // Kolom Teknisi Perbaikan (rata kiri)
-        let cellTeknisi = newRow.insertCell();
-        cellTeknisi.textContent = row[reservasiIndexMap[9]] || "";
-        cellTeknisi.className = "text-left";
-        
-        // Kolom Analisa SA (rata kiri)
-        let cellAnalisa = newRow.insertCell();
-        cellAnalisa.textContent = row[reservasiIndexMap[10]] || "";
-        cellAnalisa.className = "text-left";
-        
-        // Kolom Disetujui Pada (rata kiri) dengan format tanggal
-        let cellDisetujui = newRow.insertCell();
-        const tanggalValue = row[reservasiIndexMap[11]] || "";
-        cellDisetujui.textContent = formatDateTime(tanggalValue);
-        cellDisetujui.className = "text-left";
-      });
-
-      document.getElementById("pageInfoReservasi").textContent =
-        `Halaman ${currentReservasiPage} dari ${Math.ceil(filteredReservasi.length / rowsPerPageReservasi)}`;
-
-      document.getElementById("prevReservasi").disabled = currentReservasiPage === 1;
-      document.getElementById("nextReservasi").disabled = end >= filteredReservasi.length;
-    }
-
-    function applyReservasiFilter() {
-      const searchVal = document.getElementById("searchReservasi").value.toLowerCase();
-      const filterTeknisi = document.getElementById("filterTeknisi").value;
-
-      filteredReservasi = reservasiData;
-
-      // Filter berdasarkan Teknisi Perbaikan
-      if (filterTeknisi !== "all") {
-        filteredReservasi = filteredReservasi.filter(r => {
-          const teknisi = r[reservasiIndexMap[9]] || "";
-          return teknisi === filterTeknisi;
-        });
-      }
-
-      // Filter berdasarkan pencarian
-      if (searchVal) {
-        filteredReservasi = filteredReservasi.filter(r => {
-          return (
-            (r[reservasiIndexMap[0]] && r[reservasiIndexMap[0]].toString().toLowerCase().includes(searchVal)) ||
-            (r[reservasiIndexMap[1]] && r[reservasiIndexMap[1]].toString().toLowerCase().includes(searchVal)) ||
-            (r[reservasiIndexMap[2]] && r[reservasiIndexMap[2]].toString().toLowerCase().includes(searchVal))
-          );
-        });
-      }
-
-      currentReservasiPage = 1;
-      renderReservasiTable();
-    }
-
-    function prevReservasiPage() {
-      if (currentReservasiPage > 1) {
-        currentReservasiPage--;
-        renderReservasiTable();
-      }
-    }
-
-    function nextReservasiPage() {
-      if (currentReservasiPage * rowsPerPageReservasi < filteredReservasi.length) {
-        currentReservasiPage++;
-        renderReservasiTable();
-      }
-    }
-
-    function changeRowsPerPageReservasi() {
-      rowsPerPageReservasi = parseInt(document.getElementById("rowsPerPageReservasi").value);
-      currentReservasiPage = 1;
-      renderReservasiTable();
-    }
-
-    // ---- SERVICE CALLS ----
-    let serviceData = [];
-    let serviceIndexMap = [];
-    let filteredService = [];
-    let currentServicePage = 1;
-    let rowsPerPageService = 15;
-
-    function importServiceExcel() {
-      const file = document.getElementById('importService').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header:1});
-
-        const headers = ["Tanggal Pendaftaran","Nomor Service Call","Jenis Layanan","Jenis Garansi","Tipe Demand","Nomor Seri","Nama Pemilik","Alamat Pemilik","Nama Teknisi","Tanggal Serah Terima"];
-        const excelHeaders = json[0].map(h => h.toString().trim());
-        serviceIndexMap = headers.map(h => excelHeaders.indexOf(h));
-
-        serviceData = json.slice(1).filter(r => r.length > 0);
-        
-        // Simpan ke localStorage
-        saveToLocalStorage('serviceData', serviceData);
-        
-        filteredService = serviceData;
-        currentServicePage = 1;
-        
-        updateJenisLayananFilter(serviceData);
-        renderServiceTable();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function updateJenisLayananFilter(data) {
-      const jenisLayananSet = new Set();
-      data.forEach(row => {
-        const val = row[serviceIndexMap[2]]; // Jenis Layanan
-        if (val) jenisLayananSet.add(val);
-      });
-
-      const select = document.getElementById("filterJenisLayanan");
-      select.innerHTML = '<option value="all">Semua</option>';
-      [...jenisLayananSet].sort().forEach(j => {
-        let opt = document.createElement("option");
-        opt.value = j;
-        opt.textContent = j;
-        select.appendChild(opt);
-      });
-    }
-
-    function renderServiceTable() {
-      const tbody = document.getElementById("serviceTable").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      const start = (currentServicePage - 1) * rowsPerPageService;
-      const end = start + rowsPerPageService;
-      const pageData = filteredService.slice(start, end);
-
-      pageData.forEach((row, i) => {
-        let newRow = tbody.insertRow();
-        
-        // Kolom Tanggal Pendaftaran (rata kiri) dengan format tanggal saja
-        let cellTanggalDaftar = newRow.insertCell();
-        const tanggalDaftarValue = row[serviceIndexMap[0]] || "";
-        cellTanggalDaftar.textContent = formatDateOnly(tanggalDaftarValue);
-        cellTanggalDaftar.className = "text-left";
-        
-        // Kolom Nomor Service Call (rata kiri)
-        let cellNomorService = newRow.insertCell();
-        cellNomorService.textContent = row[serviceIndexMap[1]] || "";
-        cellNomorService.className = "text-left";
-        
-        // Kolom Jenis Layanan (rata kiri)
-        let cellJenisLayanan = newRow.insertCell();
-        cellJenisLayanan.textContent = row[serviceIndexMap[2]] || "";
-        cellJenisLayanan.className = "text-left";
-        
-        // Kolom Jenis Garansi (rata kiri)
-        let cellJenisGaransi = newRow.insertCell();
-        cellJenisGaransi.textContent = row[serviceIndexMap[3]] || "";
-        cellJenisGaransi.className = "text-left";
-        
-        // Kolom Tipe Demand (rata kiri)
-        let cellTipeDemand = newRow.insertCell();
-        cellTipeDemand.textContent = row[serviceIndexMap[4]] || "";
-        cellTipeDemand.className = "text-left";
-        
-        // Kolom Nomor Seri (rata kiri)
-        let cellNomorSeri = newRow.insertCell();
-        cellNomorSeri.textContent = row[serviceIndexMap[5]] || "";
-        cellNomorSeri.className = "text-left";
-        
-        // Kolom Nama Pemilik (rata kiri)
-        let cellNamaPemilik = newRow.insertCell();
-        cellNamaPemilik.textContent = row[serviceIndexMap[6]] || "";
-        cellNamaPemilik.className = "text-left";
-        
-        // Kolom Alamat Pemilik (rata kiri)
-        let cellAlamatPemilik = newRow.insertCell();
-        cellAlamatPemilik.textContent = row[serviceIndexMap[7]] || "";
-        cellAlamatPemilik.className = "text-left";
-        
-        // Kolom Nama Teknisi (rata kiri)
-        let cellNamaTeknisi = newRow.insertCell();
-        cellNamaTeknisi.textContent = row[serviceIndexMap[8]] || "";
-        cellNamaTeknisi.className = "text-left";
-        
-        // Kolom Tanggal Serah Terima (rata kiri) dengan format tanggal
-        let cellTanggalSerah = newRow.insertCell();
-        const tanggalSerahValue = row[serviceIndexMap[9]] || "";
-        cellTanggalSerah.textContent = formatDateTime(tanggalSerahValue);
-        cellTanggalSerah.className = "text-left";
-      });
-
-      document.getElementById("pageInfoService").textContent =
-        `Halaman ${currentServicePage} dari ${Math.ceil(filteredService.length / rowsPerPageService)}`;
-
-      document.getElementById("prevService").disabled = currentServicePage === 1;
-      document.getElementById("nextService").disabled = end >= filteredService.length;
-    }
-
-    function applyServiceFilter() {
-      const searchVal = document.getElementById("searchService").value.toLowerCase();
-      const filterJenisLayanan = document.getElementById("filterJenisLayanan").value;
-
-      filteredService = serviceData;
-
-      // Filter berdasarkan Jenis Layanan
-      if (filterJenisLayanan !== "all") {
-        filteredService = filteredService.filter(r => {
-          const jenisLayanan = r[serviceIndexMap[2]] || "";
-          return jenisLayanan === filterJenisLayanan;
-        });
-      }
-
-      // Filter berdasarkan pencarian
-      if (searchVal) {
-        filteredService = filteredService.filter(r => {
-          return (
-            (r[serviceIndexMap[1]] && r[serviceIndexMap[1]].toString().toLowerCase().includes(searchVal)) ||
-            (r[serviceIndexMap[6]] && r[serviceIndexMap[6]].toString().toLowerCase().includes(searchVal))
-          );
-        });
-      }
-
-      currentServicePage = 1;
-      renderServiceTable();
-    }
-
-    function prevServicePage() {
-      if (currentServicePage > 1) {
-        currentServicePage--;
-        renderServiceTable();
-      }
-    }
-
-    function nextServicePage() {
-      if (currentServicePage * rowsPerPageService < filteredService.length) {
-        currentServicePage++;
-        renderServiceTable();
-      }
-    }
-
-    function changeRowsPerPageService() {
-      rowsPerPageService = parseInt(document.getElementById("rowsPerPageService").value);
-      currentServicePage = 1;
-      renderServiceTable();
-    }
-
-    // load data dari localStorage saat halaman dimuat
-    window.onload = function() {
-      // Load logo
-      const savedLogo = localStorage.getItem("dashboardLogo");
-      if (savedLogo) document.getElementById("logo").src = savedLogo;
-      
-      // Load data dari localStorage
-      masterData = loadFromLocalStorage('masterData');
-      filteredMaster = masterData;
-      updatePartFilter(masterData);
-      renderMasterTable();
-      
-      allData = loadFromLocalStorage('stockData');
-      filteredStock = allData;
-      updateFilterOptions(allData);
-      renderTable();
-      
-      reservasiData = loadFromLocalStorage('reservasiData');
-      filteredReservasi = reservasiData;
-      updateTeknisiFilter(reservasiData);
-      renderReservasiTable();
-      
-      serviceData = loadFromLocalStorage('serviceData');
-      filteredService = serviceData;
-      updateJenisLayananFilter(serviceData);
-      renderServiceTable();
-    };
-  </script>
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+            toast.innerHTML = `<span style="font-size: 1.1em;">${icon}</span> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function handleFile(event, tabId) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+                    if (jsonData.length === 0) throw new Error("File Excel kosong.");
+                    processData(jsonData, tabId);
+                    showToast(`Data berhasil dimuat: ${jsonData.length} baris`, 'success');
+                    event.target.value = '';
+                } catch (err) {
+                    console.error(err);
+                    showToast("Gagal membaca file Excel", 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processData(json, tabId) {
+            state[tabId].raw = json;
+            state[tabId].processed = [];
+            json.forEach((row) => {
+                const findVal = (keywords) => {
+                    const key = Object.keys(row).find(k => keywords.includes(k.toLowerCase().trim()));
+                    return key ? String(row[key]).trim() : "";
+                };
+                const item = {
+                    part: findVal(['part', 'part number', 'part no', 'kode', 'code', 'id', 'item']) || 'N/A',
+                    desc: findVal(['deskripsi', 'description', 'desc', 'nama', 'name']) || '-',
+                    qty: parseInt(findVal(['qty', 'quantity', 'jumlah', 'stock'])) || 1
+                };
+                if (tabId === 1) {
+                    for (let i = 0; i < item.qty; i++) {
+                        state[tabId].processed.push({ ...item, qty: 1 });
+                    }
+                } else {
+                    state[tabId].processed.push(item);
+                }
+            });
+            renderGrid(tabId);
+        }
+
+        function resetData(tabId) {
+            state[tabId] = { raw: [], processed: [] };
+            document.getElementById(`input-file-${tabId}`).value = '';
+            renderGrid(tabId);
+            showToast(`Data Tab ${tabId} telah direset`, 'info');
+        }
+
+        function renderGrid(tabId) {
+            const container = document.getElementById(`grid-${tabId}`);
+            const btnDownload = document.getElementById(`btn-download-${tabId}`);
+            const btnReset = document.getElementById(`btn-reset-${tabId}`);
+            const stats = document.getElementById(`stats-${tabId}`);
+            const data = state[tabId].processed;
+
+            container.innerHTML = '';
+            stats.textContent = data.length;
+
+            if (data.length === 0) {
+                container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><p>Upload file Excel untuk membuat label</p></div>`;
+                btnDownload.disabled = true;
+                btnReset.classList.add('hidden');
+                return;
+            }
+
+            btnDownload.disabled = false;
+            btnReset.classList.remove('hidden');
+            const previewLimit = 100;
+            const dataToRender = data.slice(0, previewLimit);
+
+            dataToRender.forEach((item) => {
+                const card = document.createElement('div');
+                
+                // === TAB 1 DENGAN QR ===
+                if (tabId === 1) {
+                    card.className = 'label-card fixed-mode';
+                    
+                    // Buat konten QR
+                    const qrContent = `Part: ${item.part}\nDesc: ${item.desc}`;
+                    
+                    // Struktur: Body (Kiri) | QR (Kanan)
+                    // Body: Main (Part/Desc) | Qty
+                    card.innerHTML = `
+                        <div class="label-body">
+                            <div class="label-main">
+                                <div class="label-top">
+                                    <span class="part-number" title="${item.part}">${item.part}</span>
+                                </div>
+                                <div class="label-bottom">
+                                    <span class="desc-text" title="${item.desc}">${item.desc}</span>
+                                </div>
+                            </div>
+                            <div class="qty-side">
+                                <span class="qty-text">${item.qty}</span>
+                            </div>
+                        </div>
+                        <div class="label-qr-side" id="qr-preview-${item.part.slice(0,5)}-${Math.random().toString(36).substr(2, 5)}"></div>
+                    `;
+                    
+                    container.appendChild(card);
+                    
+                    // Render QR ke dalam div
+                    const qrContainer = card.querySelector('.label-qr-side');
+                    if (qrContainer) {
+                        new QRCode(qrContainer, {
+                            text: qrContent,
+                            width: 50, // Ukuran pixel untuk preview
+                            height: 50,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    }
+                } 
+                
+                // === TAB 2 (Besar) ===
+                else if (tabId === 2) {
+                    card.className = 'label-card flex-large';
+                    card.innerHTML = `
+                        <div class="label-main">
+                            <div class="label-top"><span class="part-number" title="${item.part}">${item.part}</span></div>
+                            <div class="label-bottom"><span class="desc-text" title="${item.desc}">${item.desc}</span></div>
+                        </div>
+                        <div class="qty-side"><span class="qty-text">${item.qty}</span></div>
+                    `;
+                    container.appendChild(card);
+                } 
+                
+                // === TAB 3 (Kecil) ===
+                else {
+                    card.className = 'label-card flex-small';
+                    card.innerHTML = `
+                        <div class="label-main">
+                            <div class="label-top"><span class="part-number" title="${item.part}">${item.part}</span></div>
+                            <div class="label-bottom"><span class="desc-text" title="${item.desc}">${item.desc}</span></div>
+                        </div>
+                        <div class="qty-side"><span class="qty-text">${item.qty}</span></div>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+
+            if (data.length > previewLimit) {
+                const info = document.createElement('div');
+                info.style.cssText = 'width:100%;text-align:center;padding:20px;color:#64748b;font-size:0.8rem;';
+                info.textContent = `...dan ${data.length - previewLimit} label lainnya`;
+                container.appendChild(info);
+            }
+        }
+
+        function addLogoToPDF(doc) {
+            try { doc.addImage(CFG.logoUrl, 'PNG', 232, 8, 55, 18); } catch (e) { console.warn("Logo error", e); }
+        }
+
+        async function generatePDF(tabId) {
+            const data = state[tabId].processed;
+            if (!data || data.length === 0) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            doc.setFont("helvetica");
+            addLogoToPDF(doc);
+            showToast("Sedang membuat PDF...", "info");
+
+            // Gunakan setTimeout untuk memberi jeda render jika diperlukan
+            setTimeout(() => {
+                if (tabId === 1) {
+                    generateTab1PDF_QR(doc, data);
+                } else if (tabId === 2) {
+                    generateTab2PDF(doc, data);
+                } else {
+                    generateTab3PDF(doc, data);
+                }
+                
+                doc.save(`Label_Tab${tabId}_${Date.now()}.pdf`);
+                showToast("PDF berhasil diunduh!", "success");
+            }, 100);
+        }
+
+        // === PDF GENERATOR TAB 1 (DENGAN QR) ===
+        function generateTab1PDF_QR(doc, data) {
+            let cursor = { x: CFG.margin, y: CFG.margin };
+            
+            // Hitung lebar kolom agar muat 5 kolom dengan QR
+            // Total Width = 297 - 20 (margin) - 12 (gap 4x 3mm) = 265mm
+            // Width per label = 265 / 5 = 53mm
+            const colWidth = (CFG.pageW - (CFG.margin * 2) - (CFG.gapX * (CFG.tab1_cols - 1))) / CFG.tab1_cols;
+            let colCount = 0;
+
+            data.forEach((item) => {
+                // Cek page break
+                if (cursor.y + CFG.labelH > CFG.pageH - CFG.margin) {
+                    doc.addPage();
+                    addLogoToPDF(doc);
+                    cursor.y = CFG.margin;
+                    cursor.x = CFG.margin;
+                    colCount = 0;
+                }
+
+                // Cek row break
+                if (colCount >= CFG.tab1_cols) {
+                    cursor.y += CFG.labelH + CFG.gapY;
+                    cursor.x = CFG.margin;
+                    colCount = 0;
+                    if (cursor.y + CFG.labelH > CFG.pageH - CFG.margin) {
+                        doc.addPage();
+                        addLogoToPDF(doc);
+                        cursor.y = CFG.margin;
+                        cursor.x = CFG.margin;
+                        colCount = 0;
+                    }
+                }
+
+                // Gambar Border Utama
+                doc.setDrawColor(0); doc.setLineWidth(0.2);
+                doc.rect(cursor.x, cursor.y, colWidth, CFG.labelH);
+
+                // === ZONE 1: MAIN CONTENT (KIRI) ===
+                // Lebar konten = Total - QR Side
+                const contentWidth = colWidth - CFG.qrSideW;
+                
+                // Garis pemisah hitam vertikal antara Konten dan QR
+                doc.line(cursor.x + contentWidth, cursor.y, cursor.x + contentWidth, cursor.y + CFG.labelH);
+
+                // Part Number (Bold)
+                doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(0,0,0);
+                doc.text(item.part, cursor.x + 2, cursor.y + 4.5, { maxWidth: contentWidth - 4 });
+                
+                // Garis horizontal
+                doc.line(cursor.x, cursor.y + 5.5, cursor.x + contentWidth, cursor.y + 5.5);
+                
+                // Deskripsi
+                doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(60,60,60);
+                const splitDesc = doc.splitTextToSize(item.desc, contentWidth - 4);
+                doc.text(splitDesc, cursor.x + 2, cursor.y + 9);
+
+                // === ZONE 2: QR CODE (KANAN) ===
+                const qrX = cursor.x + contentWidth;
+                
+                // Generate QR Image
+                // Kita gunakan library QRCode untuk membuat data URL
+                // Karena di jsPDF kita perlu gambar, kita buat temporary div atau gunakan API
+                // Trik: Gunakan kalkulasi manual atau library qr-code-generator yang ringan
+                
+                // Sederhananya, kita gunakan library qrcode (yang sudah di-load) untuk generate dataURL
+                const qrContent = `Part: ${item.part}\nDesc: ${item.desc}`;
+                
+                // Buat element sementara untuk generate QR
+                const tempDiv = document.createElement('div');
+                // QRCode library akan menaruh canvas di dalam div ini
+                const qrcode = new QRCode(tempDiv, {
+                    text: qrContent,
+                    width: 100,
+                    height: 100,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.M
+                });
+                
+                // Ambil canvas dari div
+                const canvas = tempDiv.querySelector('canvas');
+                if(canvas) {
+                    const imgData = canvas.toDataURL("image/png");
+                    // Masukkan ke PDF (Ukuran 12mm x 12mm)
+                    doc.addImage(imgData, 'PNG', qrX + 1, cursor.y + 1, CFG.qrSideW - 2, CFG.labelH - 2);
+                }
+
+                // Update Cursor
+                cursor.x += colWidth + CFG.gapX;
+                colCount++;
+            });
+        }
+
+        // === PDF GENERATOR TAB 2 (TETAP) ===
+        function generateTab2PDF(doc, data) {
+            let cursor = { x: CFG.margin, y: CFG.margin };
+            data.forEach((item) => {
+                doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+                const partWidth = doc.getTextWidth(item.part);
+                let contentWidth = Math.max(partWidth + 10, 50 - 14);
+                contentWidth = Math.min(contentWidth, 150 - 14);
+                const totalWidth = contentWidth + 14;
+
+                if (cursor.x + totalWidth > CFG.pageW - CFG.margin) {
+                    cursor.y += CFG.labelH + CFG.gapY; cursor.x = CFG.margin;
+                    if (cursor.y + CFG.labelH > CFG.pageH - CFG.margin) {
+                        doc.addPage(); addLogoToPDF(doc); cursor.y = CFG.margin; cursor.x = CFG.margin;
+                    }
+                }
+                doc.setDrawColor(0); doc.setLineWidth(0.2); doc.rect(cursor.x, cursor.y, contentWidth, CFG.labelH);
+                doc.line(cursor.x, cursor.y + 7, cursor.x + contentWidth, cursor.y + 7);
+                doc.setTextColor(0, 0, 0);
+                doc.text(item.part, cursor.x + contentWidth / 2, cursor.y + 5, { align: 'center', maxWidth: contentWidth - 2 });
+                doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(60, 60, 60);
+                const splitDesc = doc.splitTextToSize(item.desc, contentWidth - 4);
+                doc.text(splitDesc, cursor.x + contentWidth / 2, cursor.y + 10.5, { align: 'center' });
+
+                const qtyX = cursor.x + contentWidth;
+                doc.setFillColor(241, 245, 249);
+                doc.rect(qtyX, cursor.y, 14, CFG.labelH, 'FD');
+                doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(0, 0, 0);
+                doc.text(String(item.qty), qtyX + 7, cursor.y + CFG.labelH / 2 + 1.5, { align: 'center' });
+
+                cursor.x += totalWidth + CFG.gapX;
+            });
+        }
+
+        // === PDF GENERATOR TAB 3 (TETAP) ===
+        function generateTab3PDF(doc, data) {
+            const availableHeight = CFG.pageH - (2 * CFG.margin);
+            const itemTotalHeight = CFG.labelH + CFG.gapY;
+            const itemsPerCol = Math.floor(availableHeight / itemTotalHeight);
+            const columnsData = [];
+            for (let i = 0; i < data.length; i += itemsPerCol) { columnsData.push(data.slice(i, i + itemsPerCol)); }
+
+            let cursorX = CFG.margin;
+            columnsData.forEach((colItems) => {
+                let maxColWidth = 0;
+                colItems.forEach(item => {
+                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+                    const partWidth = doc.getTextWidth(item.part);
+                    let contentW = Math.max(partWidth + 6, 30 - 10);
+                    contentW = Math.min(contentW, 120 - 10);
+                    maxColWidth = Math.max(maxColWidth, contentW + 10);
+                });
+
+                if (cursorX + maxColWidth > CFG.pageW - CFG.margin) { doc.addPage(); addLogoToPDF(doc); cursorX = CFG.margin; }
+                let cursorY = CFG.margin;
+
+                colItems.forEach((item) => {
+                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+                    const partWidth = doc.getTextWidth(item.part);
+                    let contentWidth = Math.max(partWidth + 6, 30 - 10);
+                    contentWidth = Math.min(contentWidth, 120 - 10);
+
+                    doc.setDrawColor(0); doc.setLineWidth(0.2); doc.rect(cursorX, cursorY, contentWidth, CFG.labelH);
+                    doc.line(cursorX, cursorY + 5.5, cursorX + contentWidth, cursorY + 5.5);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(item.part, cursorX + contentWidth / 2, cursorY + 4, { align: 'center', maxWidth: contentWidth - 2 });
+
+                    doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(60, 60, 60);
+                    const splitDesc = doc.splitTextToSize(item.desc, contentWidth - 4);
+                    doc.text(splitDesc, cursorX + contentWidth / 2, cursorY + 9, { align: 'center' });
+
+                    const qtyX = cursorX + contentWidth;
+                    doc.setFillColor(241, 245, 249);
+                    doc.rect(qtyX, cursorY, 10, CFG.labelH, 'FD');
+                    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(0, 0, 0);
+                    doc.text(String(item.qty), qtyX + 5, cursorY + CFG.labelH / 2 + 1, { align: 'center' });
+
+                    cursorY += CFG.labelH + CFG.gapY;
+                });
+                cursorX += maxColWidth + CFG.gapX;
+            });
+        }
+    </script>
 </body>
 </html>
