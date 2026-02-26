@@ -1,794 +1,219 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Cetak Label QR - POLYTRON KUPANG</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Library Excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
-    <!-- Library PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Library QR Code (Untuk Preview & PDF) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --primary: #b91c1c;
-            --primary-light: #dc2626;
-            --primary-dark: #7f1d1d;
-            --accent: #ef4444;
-            --bg-dark: #0f0f0f;
-            --bg-card: #1a1a1a;
-            --bg-elevated: #242424;
-            --text-primary: #f5f5f5;
-            --text-secondary: #a3a3a3;
-            --text-muted: #737373;
-            --border: #333333;
-            --paper: #fafafa;
-            --success: #22c55e;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Opname Sparepart</title>
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<!-- LIBRARY -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
-        body {
-            font-family: 'Space Grotesk', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Background Effects */
-        .bg-pattern {
-            position: fixed; inset: 0; z-index: 0;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(185, 28, 28, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0%, var(--bg-dark) 100%);
-            pointer-events: none;
-        }
-
-        .grid-overlay {
-            position: fixed; inset: 0; z-index: 0;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-        }
-
-        .particle {
-            position: fixed; width: 4px; height: 4px;
-            background: var(--primary); border-radius: 50%;
-            pointer-events: none; opacity: 0.3;
-            animation: float 20s infinite ease-in-out;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-            25% { transform: translateY(-100px) translateX(50px); opacity: 0.6; }
-            50% { transform: translateY(-50px) translateX(-30px); opacity: 0.4; }
-            75% { transform: translateY(-150px) translateX(20px); opacity: 0.5; }
-        }
-
-        .main-container {
-            position: relative; z-index: 10;
-            max-width: 1400px; margin: 0 auto;
-            padding: 24px; min-height: 100vh;
-        }
-
-        /* Header */
-        .app-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 28px;
-            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%);
-            border: 1px solid var(--border); border-radius: 16px;
-            margin-bottom: 24px; position: relative; overflow: hidden;
-        }
-        .app-header::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary-light));
-        }
-        .header-info h1 {
-            font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        .header-info p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
-        .header-logo { height: 64px; width: auto; filter: drop-shadow(0 4px 12px rgba(185, 28, 28, 0.3)); transition: transform 0.3s ease; }
-        .header-logo:hover { transform: scale(1.05); }
-
-        /* Tabs */
-        .tabs-container {
-            display: flex; gap: 8px; margin-bottom: 20px; padding: 6px;
-            background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);
-        }
-        .tab-btn {
-            flex: 1; padding: 14px 20px; background: transparent; border: none; border-radius: 8px;
-            color: var(--text-secondary); font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; position: relative;
-        }
-        .tab-btn:hover { color: var(--text-primary); background: var(--bg-elevated); }
-        .tab-btn.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white; box-shadow: 0 4px 20px rgba(185, 28, 28, 0.4);
-        }
-
-        /* Control Panel */
-        .control-panel {
-            display: flex; align-items: center; gap: 16px; padding: 16px 20px;
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-            margin-bottom: 20px; flex-wrap: wrap;
-        }
-        .upload-zone { position: relative; overflow: hidden; }
-        .upload-btn {
-            display: flex; align-items: center; gap: 10px; padding: 12px 24px;
-            background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 100%);
-            border: 2px dashed var(--border); border-radius: 10px;
-            color: var(--text-primary); font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
-        }
-        .upload-btn:hover { border-color: var(--primary); background: linear-gradient(135deg, rgba(185, 28, 28, 0.1) 0%, var(--bg-card) 100%); }
-        .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-        
-        .action-btn {
-            display: flex; align-items: center; gap: 8px; padding: 12px 24px;
-            border: none; border-radius: 10px; font-family: 'Space Grotesk', sans-serif;
-            font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
-        }
-        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; box-shadow: 0 4px 15px rgba(185, 28, 28, 0.3); }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(185, 28, 28, 0.5); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn-danger { background: transparent; border: 1px solid var(--border); color: var(--accent); }
-        .btn-danger:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--accent); }
-        
-        .stats-badge { padding: 8px 16px; background: var(--bg-elevated); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text-secondary); }
-        .stats-badge span { color: var(--primary-light); font-weight: 600; }
-
-        /* Paper Preview */
-        .paper-preview {
-            background: var(--paper); border-radius: 12px; padding: 12px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            overflow: hidden; aspect-ratio: 297 / 210; max-height: 65vh; overflow-y: auto;
-        }
-
-        /* Label Grids */
-        .labels-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4mm 3mm; padding: 4px; } /* Diubah jadi 5 kolom karena label lebih lebar */
-        .labels-grid-flex-row { display: flex; flex-wrap: wrap; gap: 4mm 3mm; padding: 4px; }
-        .labels-grid-flex-col { display: flex; flex-direction: column; flex-wrap: wrap; height: 185mm; gap: 4mm 3mm; padding: 4px; align-content: flex-start; }
-
-        /* === LABEL CARD STYLES === */
-        .label-card {
-            background: white;
-            border: 1.5px solid #1a1a1a;
-            border-radius: 2px;
-            height: 14mm;
-            display: flex;
-            overflow: hidden;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-        .label-card:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
-        .label-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--primary); opacity: 0; transition: opacity 0.2s ease; }
-        .label-card:hover::after { opacity: 1; }
-
-        /* Layout untuk Tab 1 dengan QR */
-        .label-card.fixed-mode {
-            width: 100%;
-            display: flex;
-            flex-direction: row;
-        }
-
-        /* Area Konten Utama (Kiri) */
-        .label-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #333; /* Pembatas hitam */
-            min-width: 0;
-        }
-        
-        /* Area QR (Kanan) - Hanya untuk Tab 1 */
-        .label-qr-side {
-            width: 14mm; /* Ukuran QR cukup untuk scan */
-            height: 100%;
-            background-color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1px;
-        }
-
-        .label-qr-side canvas, .label-qr-side img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-
-        /* Sub-parts Layout */
-        .label-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #999; /* Pembatas abu */
-            min-width: 0;
-        }
-
-        .label-top {
-            height: 40%;
-            display: flex; align-items: center; justify-content: center;
-            border-bottom: 1px solid #ccc;
-            padding: 0 4px;
-        }
-        .part-number {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700; font-size: 9px; color: #1a1a1a;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        
-        .label-bottom {
-            height: 60%;
-            display: flex; align-items: center; justify-content: center;
-            padding: 0 4px; overflow: hidden;
-        }
-        .desc-text {
-            font-size: 6px; color: #555; text-align: center;
-            line-height: 1.2; max-width: 100%; overflow: hidden;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-        }
-
-        /* Qty Side (Paling Kanan) */
-        .qty-side {
-            width: 10mm;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .qty-text {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700; font-size: 10px; color: #1a1a1a;
-        }
-
-        /* Flex Large/Small untuk Tab Lain */
-        .label-card.flex-large { min-width: 50mm; max-width: 150mm; flex-shrink: 0; }
-        .label-card.flex-small { min-width: 30mm; max-width: 120mm; flex-shrink: 0; }
-        .flex-large .part-number { font-size: 12px; }
-        .flex-large .desc-text { font-size: 8px; }
-        .flex-large .qty-side { width: 14mm; }
-        .flex-large .qty-text { font-size: 13px; }
-
-        /* Empty State */
-        .empty-state {
-            grid-column: 1 / -1;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 60px 20px; color: #64748b; text-align: center;
-        }
-        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
-        .empty-state p { font-size: 0.95rem; font-style: italic; }
-
-        /* Toast */
-        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 14px 20px; border-radius: 10px; color: white; font-size: 0.9rem; font-weight: 500; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px; }
-        .toast.success { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
-        .toast.error { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); }
-        .toast.info { background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        .hidden { display: none !important; }
-        .flex-spacer { flex: 1; }
-
-        /* Scrollbar */
-        .paper-preview::-webkit-scrollbar { width: 8px; }
-        .paper-preview::-webkit-scrollbar-track { background: #e5e5e5; border-radius: 4px; }
-        .paper-preview::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .main-container { padding: 16px; }
-            .app-header { flex-direction: column; text-align: center; gap: 16px; }
-            .header-logo { height: 50px; }
-            .tabs-container { flex-direction: column; }
-            .control-panel { flex-direction: column; align-items: stretch; }
-            .paper-preview { aspect-ratio: auto; min-height: 500px; }
-            /* Kembalikan grid ke 6 kolom di mobile jika perlu, atau biarkan responsif */
-            .labels-grid { grid-template-columns: repeat(4, 1fr); } 
-        }
-    </style>
+<style>
+:root{
+--primary:#2563eb;--bg:#f1f5f9;--card:#fff;
+--success:#16a34a;--danger:#dc2626;--neutral:#64748b;
+--border:#e5e7eb;
+}
+body{margin:0;font-family:Segoe UI;background:var(--bg)}
+header{background:#fff;padding:16px 24px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.container{padding:20px}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,.05)}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+input,button{
+padding:10px 14px;border-radius:10px;border:1px solid var(--border);
+font-size:14px
+}
+button.primary{background:var(--primary);color:#fff;border:none}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid var(--border);font-size:14px}
+th{background:#f8fafc;text-align:left}
+.selih{font-weight:600;text-align:center;border-radius:8px}
+.plus{background:#dcfce7;color:var(--success)}
+.minus{background:#fee2e2;color:var(--danger)}
+.zero{background:#f1f5f9;color:var(--neutral)}
+input[type=number]{width:70px}
+#reader{width:100%;max-width:320px;margin-top:10px}
+</style>
 </head>
+
 <body>
-    <div class="bg-pattern"></div>
-    <div class="grid-overlay"></div>
-    
-    <div class="particle" style="left: 10%; top: 20%; animation-delay: 0s;"></div>
-    <div class="particle" style="left: 80%; top: 30%; animation-delay: 2s;"></div>
-    <div class="particle" style="left: 30%; top: 70%; animation-delay: 4s;"></div>
-    <div class="particle" style="left: 70%; top: 80%; animation-delay: 6s;"></div>
-    <div class="particle" style="left: 50%; top: 40%; animation-delay: 8s;"></div>
 
-    <div class="main-container">
-        <header class="app-header">
-            <div class="header-info">
-                <h1>Sistem Cetak Label QR</h1>
-                <p>POLYTRON KUPANG - Sistem pembuatan label komponen presisi</p>
-            </div>
-            <img src="https://z-cdn-media.chatglm.cn/files/3dcb85ae-3aba-4396-8fa0-5bc9bfe1cf69.png?auth_key=1870198629-02b65d366b90488c9262649819ac83fe-0-059ce65682ed4ea26fb7b0454209dd62" alt="Logo Polytron" class="header-logo">
-        </header>
+<header>
+<h2>📦 Stock Opname Sparepart</h2>
+</header>
 
-        <div class="tabs-container">
-            <button class="tab-btn active" id="btn-tab-1" onclick="switchTab(1)">Tab 1: Komponen Kecil (QR)</button>
-            <button class="tab-btn" id="btn-tab-2" onclick="switchTab(2)">Tab 2: Komponen Besar/DOOS</button>
-            <button class="tab-btn" id="btn-tab-3" onclick="switchTab(3)">Tab 3: Modul SET</button>
-        </div>
+<div class="container">
+<div class="card">
 
-        <!-- TAB 1 -->
-        <main id="view-tab-1">
-            <section class="control-panel">
-                <div class="upload-zone">
-                    <button class="upload-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        Upload Excel
-                    </button>
-                    <input type="file" id="input-file-1" accept=".xlsx, .xls">
-                </div>
-                <div class="flex-spacer"></div>
-                <div class="stats-badge">Total: <span id="stats-1">0</span> Label</div>
-                <button class="action-btn btn-danger hidden" id="btn-reset-1" onclick="resetData(1)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    Reset
-                </button>
-                <button class="action-btn btn-primary" id="btn-download-1" disabled onclick="generatePDF(1)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Download PDF
-                </button>
-            </section>
-            <div class="paper-preview">
-                <!-- Grid diubah jadi 5 kolom agar muat QR -->
-                <div class="labels-grid" id="grid-1"> 
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-                        <p>Upload file Excel untuk membuat label</p>
-                    </div>
-                </div>
-            </div>
-        </main>
+<div class="controls">
+<input type="date" id="tanggal">
+<input type="file" id="fileInput" accept=".xlsx">
+<input type="text" id="search" placeholder="Cari Part / Deskripsi" oninput="filterTable()">
+<button onclick="startScan()">📷 Scan</button>
+<button class="primary" onclick="exportExcel()">⬇ Excel</button>
+<button class="primary" onclick="exportPDF()">⬇ PDF</button>
+</div>
 
-        <!-- TAB 2 -->
-        <main id="view-tab-2" class="hidden">
-            <section class="control-panel">
-                <div class="upload-zone">
-                    <button class="upload-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Excel</button>
-                    <input type="file" id="input-file-2" accept=".xlsx, .xls">
-                </div>
-                <div class="flex-spacer"></div>
-                <div class="stats-badge">Total: <span id="stats-2">0</span> Label</div>
-                <button class="action-btn btn-danger hidden" id="btn-reset-2" onclick="resetData(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reset</button>
-                <button class="action-btn btn-primary" id="btn-download-2" disabled onclick="generatePDF(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</button>
-            </section>
-            <div class="paper-preview">
-                <div class="labels-grid-flex-row" id="grid-2"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><p>Upload file Excel untuk membuat label</p></div></div>
-            </div>
-        </main>
+<div id="reader"></div>
 
-        <!-- TAB 3 -->
-        <main id="view-tab-3" class="hidden">
-            <section class="control-panel">
-                <div class="upload-zone">
-                    <button class="upload-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload Excel</button>
-                    <input type="file" id="input-file-3" accept=".xlsx, .xls">
-                </div>
-                <div class="flex-spacer"></div>
-                <div class="stats-badge">Total: <span id="stats-3">0</span> Label</div>
-                <button class="action-btn btn-danger hidden" id="btn-reset-3" onclick="resetData(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Reset</button>
-                <button class="action-btn btn-primary" id="btn-download-3" disabled onclick="generatePDF(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</button>
-            </section>
-            <div class="paper-preview">
-                <div class="labels-grid-flex-col" id="grid-3"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><p>Upload file Excel untuk membuat label</p></div></div>
-            </div>
-        </main>
-    </div>
+<table>
+<thead>
+<tr>
+<th>No</th><th>Part</th><th>Deskripsi</th>
+<th>Qty</th><th>Fisik</th><th>Selisih</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
 
-    <div id="toast-container"></div>
+</div>
+</div>
 
-    <script>
-        // State & Config Initialization
-        const state = { 1: { raw: [], processed: [] }, 2: { raw: [], processed: [] }, 3: { raw: [], processed: [] } };
-        const CFG = {
-            pageW: 297, pageH: 210, margin: 10, labelH: 14, gapX: 3, gapY: 4,
-            tab1_cols: 5, // Dikurangi jadi 5 kolom karena label lebih lebar (ada QR)
-            qtySideW: 10, qrSideW: 14, // Lebar QR
-            logoUrl: "https://z-cdn-media.chatglm.cn/files/3dcb85ae-3aba-4396-8fa0-5bc9bfe1cf69.png?auth_key=1870198629-02b65d366b90488c9262649819ac83fe-0-059ce65682ed4ea26fb7b0454209dd62"
-        };
+<script>
+const tbody=document.getElementById("tbody");
+const storageKey="opnameData";
 
-        // Event Listeners
-        document.getElementById('input-file-1').addEventListener('change', (e) => handleFile(e, 1));
-        document.getElementById('input-file-2').addEventListener('change', (e) => handleFile(e, 2));
-        document.getElementById('input-file-3').addEventListener('change', (e) => handleFile(e, 3));
+/* ===== LOAD STORAGE ===== */
+window.onload=()=>{
+document.getElementById("tanggal").value=
+localStorage.getItem("tanggal") || new Date().toISOString().split("T")[0];
+loadStorage();
+}
 
-        function switchTab(tabId) {
-            [1, 2, 3].forEach(id => {
-                document.getElementById(`view-tab-${id}`).classList.add('hidden');
-                document.getElementById(`btn-tab-${id}`).classList.remove('active');
-            });
-            document.getElementById(`view-tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`btn-tab-${tabId}`).classList.add('active');
-        }
+/* ===== EXCEL ===== */
+document.getElementById("fileInput").addEventListener("change",e=>{
+const r=new FileReader();
+r.onload=ev=>{
+const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
+const sh=wb.Sheets[wb.SheetNames[0]];
+const rows=XLSX.utils.sheet_to_json(sh,{header:1});
+tbody.innerHTML="";
+rows.slice(1).forEach((r,i)=>addRow(i+1,r[1],r[2],r[3],0));
+saveStorage();
+}
+r.readAsArrayBuffer(e.target.files[0]);
+});
 
-        function showToast(msg, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
-            toast.innerHTML = `<span style="font-size: 1.1em;">${icon}</span> ${msg}`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; setTimeout(() => toast.remove(), 300); }, 3000);
-        }
+/* ===== ADD ROW ===== */
+function addRow(no,part,desc,qty,fisik){
+const tr=document.createElement("tr");
+tr.innerHTML=`
+<td>${no}</td>
+<td>${part}</td>
+<td>${desc}</td>
+<td class="qty">${qty}</td>
+<td><input type="number" value="${fisik}" oninput="calc(this)"></td>
+<td class="selih zero">0</td>`;
+tbody.appendChild(tr);
+calc(tr.querySelector("input"));
+}
 
-        function handleFile(event, tabId) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-                    if (jsonData.length === 0) throw new Error("File Excel kosong.");
-                    processData(jsonData, tabId);
-                    showToast(`Data berhasil dimuat: ${jsonData.length} baris`, 'success');
-                    event.target.value = '';
-                } catch (err) {
-                    console.error(err);
-                    showToast("Gagal membaca file Excel", 'error');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
+/* ===== HITUNG ===== */
+function calc(i){
+const r=i.closest("tr");
+const q=parseInt(r.querySelector(".qty").innerText)||0;
+const f=parseInt(i.value)||0;
+const s=f-q;
+const c=r.querySelector(".selih");
+c.innerText=s;
+c.className="selih "+(s>0?"plus":s<0?"minus":"zero");
+saveStorage();
+}
 
-        function processData(json, tabId) {
-            state[tabId].raw = json;
-            state[tabId].processed = [];
-            json.forEach((row) => {
-                const findVal = (keywords) => {
-                    const key = Object.keys(row).find(k => keywords.includes(k.toLowerCase().trim()));
-                    return key ? String(row[key]).trim() : "";
-                };
-                const item = {
-                    part: findVal(['part', 'part number', 'part no', 'kode', 'code', 'id', 'item']) || 'N/A',
-                    desc: findVal(['deskripsi', 'description', 'desc', 'nama', 'name']) || '-',
-                    qty: parseInt(findVal(['qty', 'quantity', 'jumlah', 'stock'])) || 1
-                };
-                if (tabId === 1) {
-                    for (let i = 0; i < item.qty; i++) {
-                        state[tabId].processed.push({ ...item, qty: 1 });
-                    }
-                } else {
-                    state[tabId].processed.push(item);
-                }
-            });
-            renderGrid(tabId);
-        }
+/* ===== SEARCH ===== */
+function filterTable(){
+const k=document.getElementById("search").value.toLowerCase();
+tbody.querySelectorAll("tr").forEach(r=>{
+r.style.display=
+r.cells[1].innerText.toLowerCase().includes(k)||
+r.cells[2].innerText.toLowerCase().includes(k)?"":"none";
+});
+}
 
-        function resetData(tabId) {
-            state[tabId] = { raw: [], processed: [] };
-            document.getElementById(`input-file-${tabId}`).value = '';
-            renderGrid(tabId);
-            showToast(`Data Tab ${tabId} telah direset`, 'info');
-        }
+/* ===== SCAN BARCODE / QR ===== */
+function startScan(){
+const qr=new Html5Qrcode("reader");
+qr.start(
+{ facingMode: "environment" },
+{ fps: 10, qrbox: 250 },
+txt=>{
+document.getElementById("search").value=txt;
+filterTable();
+qr.stop();
+}
+);
+}
 
-        function renderGrid(tabId) {
-            const container = document.getElementById(`grid-${tabId}`);
-            const btnDownload = document.getElementById(`btn-download-${tabId}`);
-            const btnReset = document.getElementById(`btn-reset-${tabId}`);
-            const stats = document.getElementById(`stats-${tabId}`);
-            const data = state[tabId].processed;
+/* ===== STORAGE ===== */
+function saveStorage(){
+const data=[];
+tbody.querySelectorAll("tr").forEach(r=>{
+data.push({
+part:r.cells[1].innerText,
+desc:r.cells[2].innerText,
+qty:r.cells[3].innerText,
+fisik:r.cells[4].querySelector("input").value
+});
+});
+localStorage.setItem(storageKey,JSON.stringify(data));
+localStorage.setItem("tanggal",document.getElementById("tanggal").value);
+}
 
-            container.innerHTML = '';
-            stats.textContent = data.length;
+function loadStorage(){
+const data=JSON.parse(localStorage.getItem(storageKey)||"[]");
+tbody.innerHTML="";
+data.forEach((d,i)=>addRow(i+1,d.part,d.desc,d.qty,d.fisik));
+}
 
-            if (data.length === 0) {
-                container.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><p>Upload file Excel untuk membuat label</p></div>`;
-                btnDownload.disabled = true;
-                btnReset.classList.add('hidden');
-                return;
-            }
+/* ===== EXPORT EXCEL ===== */
+function exportExcel(){
+const data=[["Tanggal",document.getElementById("tanggal").value]];
+data.push(["No","Part","Deskripsi","Qty","Fisik","Selisih"]);
+tbody.querySelectorAll("tr").forEach(r=>{
+data.push([
+r.cells[0].innerText,
+r.cells[1].innerText,
+r.cells[2].innerText,
+r.cells[3].innerText,
+r.cells[4].querySelector("input").value,
+r.cells[5].innerText
+]);
+});
+const ws=XLSX.utils.aoa_to_sheet(data);
+const wb=XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb,ws,"Opname");
+XLSX.writeFile(wb,"stock-opname.xlsx");
+}
 
-            btnDownload.disabled = false;
-            btnReset.classList.remove('hidden');
-            const previewLimit = 100;
-            const dataToRender = data.slice(0, previewLimit);
+/* ===== EXPORT PDF ===== */
+function exportPDF(){
+const { jsPDF } = window.jspdf;
+const doc=new jsPDF();
+doc.text("Stock Opname Sparepart",14,14);
+doc.text("Tanggal : "+document.getElementById("tanggal").value,14,22);
+const rows=[];
+tbody.querySelectorAll("tr").forEach(r=>{
+rows.push([
+r.cells[0].innerText,
+r.cells[1].innerText,
+r.cells[2].innerText,
+r.cells[3].innerText,
+r.cells[4].querySelector("input").value,
+r.cells[5].innerText
+]);
+});
+doc.autoTable({
+startY:26,
+head:[["No","Part","Deskripsi","Qty","Fisik","Selisih"]],
+body:rows,
+styles:{fontSize:8}
+});
+doc.save("stock-opname.pdf");
+}
+</script>
 
-            dataToRender.forEach((item) => {
-                const card = document.createElement('div');
-                
-                // === TAB 1 DENGAN QR ===
-                if (tabId === 1) {
-                    card.className = 'label-card fixed-mode';
-                    
-                    // Buat konten QR
-                    const qrContent = `Part: ${item.part}\nDesc: ${item.desc}`;
-                    
-                    // Struktur: Body (Kiri) | QR (Kanan)
-                    // Body: Main (Part/Desc) | Qty
-                    card.innerHTML = `
-                        <div class="label-body">
-                            <div class="label-main">
-                                <div class="label-top">
-                                    <span class="part-number" title="${item.part}">${item.part}</span>
-                                </div>
-                                <div class="label-bottom">
-                                    <span class="desc-text" title="${item.desc}">${item.desc}</span>
-                                </div>
-                            </div>
-                            <div class="qty-side">
-                                <span class="qty-text">${item.qty}</span>
-                            </div>
-                        </div>
-                        <div class="label-qr-side" id="qr-preview-${item.part.slice(0,5)}-${Math.random().toString(36).substr(2, 5)}"></div>
-                    `;
-                    
-                    container.appendChild(card);
-                    
-                    // Render QR ke dalam div
-                    const qrContainer = card.querySelector('.label-qr-side');
-                    if (qrContainer) {
-                        new QRCode(qrContainer, {
-                            text: qrContent,
-                            width: 50, // Ukuran pixel untuk preview
-                            height: 50,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.M
-                        });
-                    }
-                } 
-                
-                // === TAB 2 (Besar) ===
-                else if (tabId === 2) {
-                    card.className = 'label-card flex-large';
-                    card.innerHTML = `
-                        <div class="label-main">
-                            <div class="label-top"><span class="part-number" title="${item.part}">${item.part}</span></div>
-                            <div class="label-bottom"><span class="desc-text" title="${item.desc}">${item.desc}</span></div>
-                        </div>
-                        <div class="qty-side"><span class="qty-text">${item.qty}</span></div>
-                    `;
-                    container.appendChild(card);
-                } 
-                
-                // === TAB 3 (Kecil) ===
-                else {
-                    card.className = 'label-card flex-small';
-                    card.innerHTML = `
-                        <div class="label-main">
-                            <div class="label-top"><span class="part-number" title="${item.part}">${item.part}</span></div>
-                            <div class="label-bottom"><span class="desc-text" title="${item.desc}">${item.desc}</span></div>
-                        </div>
-                        <div class="qty-side"><span class="qty-text">${item.qty}</span></div>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-
-            if (data.length > previewLimit) {
-                const info = document.createElement('div');
-                info.style.cssText = 'width:100%;text-align:center;padding:20px;color:#64748b;font-size:0.8rem;';
-                info.textContent = `...dan ${data.length - previewLimit} label lainnya`;
-                container.appendChild(info);
-            }
-        }
-
-        function addLogoToPDF(doc) {
-            try { doc.addImage(CFG.logoUrl, 'PNG', 232, 8, 55, 18); } catch (e) { console.warn("Logo error", e); }
-        }
-
-        async function generatePDF(tabId) {
-            const data = state[tabId].processed;
-            if (!data || data.length === 0) return;
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-            doc.setFont("helvetica");
-            addLogoToPDF(doc);
-            showToast("Sedang membuat PDF...", "info");
-
-            // Gunakan setTimeout untuk memberi jeda render jika diperlukan
-            setTimeout(() => {
-                if (tabId === 1) {
-                    generateTab1PDF_QR(doc, data);
-                } else if (tabId === 2) {
-                    generateTab2PDF(doc, data);
-                } else {
-                    generateTab3PDF(doc, data);
-                }
-                
-                doc.save(`Label_Tab${tabId}_${Date.now()}.pdf`);
-                showToast("PDF berhasil diunduh!", "success");
-            }, 100);
-        }
-
-        // === PDF GENERATOR TAB 1 (DENGAN QR) ===
-        function generateTab1PDF_QR(doc, data) {
-            let cursor = { x: CFG.margin, y: CFG.margin };
-            
-            // Hitung lebar kolom agar muat 5 kolom dengan QR
-            // Total Width = 297 - 20 (margin) - 12 (gap 4x 3mm) = 265mm
-            // Width per label = 265 / 5 = 53mm
-            const colWidth = (CFG.pageW - (CFG.margin * 2) - (CFG.gapX * (CFG.tab1_cols - 1))) / CFG.tab1_cols;
-            let colCount = 0;
-
-            data.forEach((item) => {
-                // Cek page break
-                if (cursor.y + CFG.labelH > CFG.pageH - CFG.margin) {
-                    doc.addPage();
-                    addLogoToPDF(doc);
-                    cursor.y = CFG.margin;
-                    cursor.x = CFG.margin;
-                    colCount = 0;
-                }
-
-                // Cek row break
-                if (colCount >= CFG.tab1_cols) {
-                    cursor.y += CFG.labelH + CFG.gapY;
-                    cursor.x = CFG.margin;
-                    colCount = 0;
-                    if (cursor.y + CFG.labelH > CFG.pageH - CFG.margin) {
-                        doc.addPage();
-                        addLogoToPDF(doc);
-                        cursor.y = CFG.margin;
-                        cursor.x = CFG.margin;
-                        colCount = 0;
-                    }
-                }
-
-                // Gambar Border Utama
-                doc.setDrawColor(0); doc.setLineWidth(0.2);
-                doc.rect(cursor.x, cursor.y, colWidth, CFG.labelH);
-
-                // === ZONE 1: MAIN CONTENT (KIRI) ===
-                // Lebar konten = Total - QR Side
-                const contentWidth = colWidth - CFG.qrSideW;
-                
-                // Garis pemisah hitam vertikal antara Konten dan QR
-                doc.line(cursor.x + contentWidth, cursor.y, cursor.x + contentWidth, cursor.y + CFG.labelH);
-
-                // Part Number (Bold)
-                doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(0,0,0);
-                doc.text(item.part, cursor.x + 2, cursor.y + 4.5, { maxWidth: contentWidth - 4 });
-                
-                // Garis horizontal
-                doc.line(cursor.x, cursor.y + 5.5, cursor.x + contentWidth, cursor.y + 5.5);
-                
-                // Deskripsi
-                doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(60,60,60);
-                const splitDesc = doc.splitTextToSize(item.desc, contentWidth - 4);
-                doc.text(splitDesc, cursor.x + 2, cursor.y + 9);
-
-                // === ZONE 2: QR CODE (KANAN) ===
-                const qrX = cursor.x + contentWidth;
-                
-                // Generate QR Image
-                // Kita gunakan library QRCode untuk membuat data URL
-                // Karena di jsPDF kita perlu gambar, kita buat temporary div atau gunakan API
-                // Trik: Gunakan kalkulasi manual atau library qr-code-generator yang ringan
-                
-                // Sederhananya, kita gunakan library qrcode (yang sudah di-load) untuk generate dataURL
-                const qrContent = `Part: ${item.part}\nDesc: ${item.desc}`;
-                
-                // Buat element sementara untuk generate QR
-                const tempDiv = document.createElement('div');
-                // QRCode library akan menaruh canvas di dalam div ini
-                const qrcode = new QRCode(tempDiv, {
-                    text: qrContent,
-                    width: 100,
-                    height: 100,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.M
-                });
-                
-                // Ambil canvas dari div
-                const canvas = tempDiv.querySelector('canvas');
-                if(canvas) {
-                    const imgData = canvas.toDataURL("image/png");
-                    // Masukkan ke PDF (Ukuran 12mm x 12mm)
-                    doc.addImage(imgData, 'PNG', qrX + 1, cursor.y + 1, CFG.qrSideW - 2, CFG.labelH - 2);
-                }
-
-                // Update Cursor
-                cursor.x += colWidth + CFG.gapX;
-                colCount++;
-            });
-        }
-
-        // === PDF GENERATOR TAB 2 (TETAP) ===
-        function generateTab2PDF(doc, data) {
-            let cursor = { x: CFG.margin, y: CFG.margin };
-            data.forEach((item) => {
-                doc.setFont("helvetica", "bold"); doc.setFontSize(14);
-                const partWidth = doc.getTextWidth(item.part);
-                let contentWidth = Math.max(partWidth + 10, 50 - 14);
-                contentWidth = Math.min(contentWidth, 150 - 14);
-                const totalWidth = contentWidth + 14;
-
-                if (cursor.x + totalWidth > CFG.pageW - CFG.margin) {
-                    cursor.y += CFG.labelH + CFG.gapY; cursor.x = CFG.margin;
-                    if (cursor.y + CFG.labelH > CFG.pageH - CFG.margin) {
-                        doc.addPage(); addLogoToPDF(doc); cursor.y = CFG.margin; cursor.x = CFG.margin;
-                    }
-                }
-                doc.setDrawColor(0); doc.setLineWidth(0.2); doc.rect(cursor.x, cursor.y, contentWidth, CFG.labelH);
-                doc.line(cursor.x, cursor.y + 7, cursor.x + contentWidth, cursor.y + 7);
-                doc.setTextColor(0, 0, 0);
-                doc.text(item.part, cursor.x + contentWidth / 2, cursor.y + 5, { align: 'center', maxWidth: contentWidth - 2 });
-                doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(60, 60, 60);
-                const splitDesc = doc.splitTextToSize(item.desc, contentWidth - 4);
-                doc.text(splitDesc, cursor.x + contentWidth / 2, cursor.y + 10.5, { align: 'center' });
-
-                const qtyX = cursor.x + contentWidth;
-                doc.setFillColor(241, 245, 249);
-                doc.rect(qtyX, cursor.y, 14, CFG.labelH, 'FD');
-                doc.setFont("helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(0, 0, 0);
-                doc.text(String(item.qty), qtyX + 7, cursor.y + CFG.labelH / 2 + 1.5, { align: 'center' });
-
-                cursor.x += totalWidth + CFG.gapX;
-            });
-        }
-
-        // === PDF GENERATOR TAB 3 (TETAP) ===
-        function generateTab3PDF(doc, data) {
-            const availableHeight = CFG.pageH - (2 * CFG.margin);
-            const itemTotalHeight = CFG.labelH + CFG.gapY;
-            const itemsPerCol = Math.floor(availableHeight / itemTotalHeight);
-            const columnsData = [];
-            for (let i = 0; i < data.length; i += itemsPerCol) { columnsData.push(data.slice(i, i + itemsPerCol)); }
-
-            let cursorX = CFG.margin;
-            columnsData.forEach((colItems) => {
-                let maxColWidth = 0;
-                colItems.forEach(item => {
-                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-                    const partWidth = doc.getTextWidth(item.part);
-                    let contentW = Math.max(partWidth + 6, 30 - 10);
-                    contentW = Math.min(contentW, 120 - 10);
-                    maxColWidth = Math.max(maxColWidth, contentW + 10);
-                });
-
-                if (cursorX + maxColWidth > CFG.pageW - CFG.margin) { doc.addPage(); addLogoToPDF(doc); cursorX = CFG.margin; }
-                let cursorY = CFG.margin;
-
-                colItems.forEach((item) => {
-                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-                    const partWidth = doc.getTextWidth(item.part);
-                    let contentWidth = Math.max(partWidth + 6, 30 - 10);
-                    contentWidth = Math.min(contentWidth, 120 - 10);
-
-                    doc.setDrawColor(0); doc.setLineWidth(0.2); doc.rect(cursorX, cursorY, contentWidth, CFG.labelH);
-                    doc.line(cursorX, cursorY + 5.5, cursorX + contentWidth, cursorY + 5.5);
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(item.part, cursorX + contentWidth / 2, cursorY + 4, { align: 'center', maxWidth: contentWidth - 2 });
-
-                    doc.setFont("helvetica", "normal"); doc.setFontSize(6); doc.setTextColor(60, 60, 60);
-                    const splitDesc = doc.splitTextToSize(item.desc, contentWidth - 4);
-                    doc.text(splitDesc, cursorX + contentWidth / 2, cursorY + 9, { align: 'center' });
-
-                    const qtyX = cursorX + contentWidth;
-                    doc.setFillColor(241, 245, 249);
-                    doc.rect(qtyX, cursorY, 10, CFG.labelH, 'FD');
-                    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(0, 0, 0);
-                    doc.text(String(item.qty), qtyX + 5, cursorY + CFG.labelH / 2 + 1, { align: 'center' });
-
-                    cursorY += CFG.labelH + CFG.gapY;
-                });
-                cursorX += maxColWidth + CFG.gapX;
-            });
-        }
-    </script>
 </body>
 </html>
