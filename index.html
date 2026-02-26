@@ -103,6 +103,13 @@ input:focus {
 }
 .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 8px rgba(220, 38, 38, 0.25); }
 
+.btn-success {
+    background: var(--success);
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(22, 163, 74, 0.2);
+}
+.btn-success:hover { background: #15803d; transform: translateY(-2px); }
+
 .btn-danger {
     background: transparent;
     color: var(--danger);
@@ -229,7 +236,7 @@ input[type="number"] {
 
 <header>
     <h2>📦 Stock Opname Sparepart</h2>
-    <span>v2.1 Modern UI</span>
+    <span>v2.2 Save Feature</span>
 </header>
 
 <div class="container">
@@ -244,6 +251,12 @@ input[type="number"] {
             <div class="input-group">
                 <span class="label">Import Data</span>
                 <input type="file" id="fileInput" accept=".xlsx,.xls" style="background:none; padding:10px;">
+            </div>
+            
+            <!-- Tombol Simpan Baru -->
+             <div class="input-group" style="justify-content: flex-end;">
+                <span class="label">&nbsp;</span>
+                <button class="btn btn-success" onclick="manualSave()">💾 Simpan Data</button>
             </div>
         </div>
 
@@ -365,7 +378,7 @@ function calc(input) {
     el.innerText = (selisih > 0 ? "+" : "") + selisih;
     
     el.className = "badge " + (selisih > 0 ? "plus" : selisih < 0 ? "minus" : "zero");
-    saveStorage();
+    saveStorage(); // Auto-save setiap perubahan
 }
 
 /* ===== SEARCH & FILTER ===== */
@@ -450,7 +463,7 @@ function stopScan() {
     }
 }
 
-/* ===== STORAGE ===== */
+/* ===== STORAGE FUNCTIONS ===== */
 function saveStorage() {
     const data = [];
     tbody.querySelectorAll("tr").forEach(r => {
@@ -465,11 +478,18 @@ function saveStorage() {
     localStorage.setItem("tanggal_mod", document.getElementById("tanggal").value);
 }
 
+// Fungsi Simpan Manual (Dipanggil tombol)
+function manualSave() {
+    saveStorage();
+    showToast("💾 Data berhasil disimpan!");
+}
+
 function loadStorage() {
     const data = JSON.parse(localStorage.getItem(storageKey) || "[]");
     tbody.innerHTML = "";
     if(data.length > 0) {
         data.forEach((d, i) => addRow(i + 1, d.part, d.desc, d.qty, d.fisik));
+        showToast("📂 Data sebelumnya dimuat");
     }
 }
 
@@ -486,7 +506,6 @@ function exportExcel() {
     if(tbody.rows.length === 0) return showToast("Data kosong!");
     
     const d = document.getElementById("tanggal").value;
-    // Header disesuaikan dengan permintaan
     const data = [["LAPORAN STOCK OPNAME"], ["Tanggal", d], [], ["NO", "PART", "Deskripsi Part", "QTY", "QTY FISIK", "SELISIH", "KET"]];
     
     tbody.querySelectorAll("tr").forEach(r => {
@@ -514,7 +533,7 @@ function exportPDF() {
     const d = document.getElementById("tanggal").value;
     
     doc.setFontSize(18);
-    doc.setTextColor(31, 41, 55); // Dark
+    doc.setTextColor(31, 41, 55);
     doc.text("Laporan Stock Opname", 14, 18);
     
     doc.setFontSize(11);
@@ -532,7 +551,6 @@ function exportPDF() {
 
     doc.autoTable({
         startY: 32,
-        // Header disesuaikan dengan permintaan
         head: [["NO", "PART", "Deskripsi Part", "QTY", "QTY FISIK", "SELISIH"]],
         body: rows,
         styles: { fontSize: 9, cellPadding: 3 },
