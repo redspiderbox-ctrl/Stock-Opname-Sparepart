@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stock Opname Sparepart</title>
+<title>Stock Opname Modern</title>
 
 <!-- LIBRARY -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -12,206 +12,543 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-:root{
---primary:#2563eb;--bg:#f1f5f9;--card:#fff;
---success:#16a34a;--danger:#dc2626;--neutral:#64748b;
---border:#e5e7eb;
+:root {
+    --primary: #DC2626;      /* Merah */
+    --primary-dark: #B91C1C; /* Merah Gelap */
+    --bg: #F3F4F6;           /* Abu Terang */
+    --card: #FFFFFF;         /* Putih */
+    --text-dark: #1F2937;    /* Hitam Pekat */
+    --text-gray: #6B7280;    /* Abu Text */
+    --border: #E5E7EB;       /* Abu Border */
+    --success: #16A34A;
+    --danger: #DC2626;
+    --neutral: #9CA3AF;
 }
-body{margin:0;font-family:Segoe UI;background:var(--bg)}
-header{background:#fff;padding:16px 24px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-.container{padding:20px}
-.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 10px 25px rgba(0,0,0,.05)}
-.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-input,button{
-padding:10px 14px;border-radius:10px;border:1px solid var(--border);
-font-size:14px
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text-dark);
+    min-height: 100vh;
 }
-button.primary{background:var(--primary);color:#fff;border:none}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid var(--border);font-size:14px}
-th{background:#f8fafc;text-align:left}
-.selih{font-weight:600;text-align:center;border-radius:8px}
-.plus{background:#dcfce7;color:var(--success)}
-.minus{background:#fee2e2;color:var(--danger)}
-.zero{background:#f1f5f9;color:var(--neutral)}
-input[type=number]{width:70px}
-#reader{width:100%;max-width:320px;margin-top:10px}
+
+/* HEADER */
+header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    padding: 24px 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+header h2 { margin: 0; letter-spacing: 0.5px; font-weight: 700; display:flex; align-items:center; gap:10px; }
+header span { font-size: 14px; opacity: 0.9; font-weight: 400; background: rgba(0,0,0,0.2); padding: 4px 12px; border-radius: 20px; }
+
+/* CONTAINER */
+.container { padding: 30px; max-width: 1400px; margin: 0 auto; }
+.card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+}
+
+/* CONTROLS AREA */
+.controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 12px; font-weight: 600; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; }
+
+input[type="text"], input[type="date"], input[type="number"], input[type="file"] {
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: #FAFAFA;
+}
+input:focus {
+    border-color: var(--primary);
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* BUTTONS */
+.btn {
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 8px rgba(220, 38, 38, 0.25); }
+
+.btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 2px solid var(--border);
+}
+.btn-danger:hover { background: #FEF2F2; border-color: var(--danger); }
+
+.btn-action {
+    background: #F3F4F6;
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+}
+.btn-action:hover { background: #E5E7EB; }
+
+.btn-scan {
+    background: var(--text-dark);
+    color: #fff;
+}
+
+/* TABLE */
+.table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; min-width: 800px; }
+th { 
+    background: #F9FAFB; 
+    padding: 14px 16px; 
+    text-align: left; 
+    font-size: 12px; 
+    font-weight: 700; 
+    color: var(--text-gray); 
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border);
+}
+td { 
+    padding: 14px 16px; 
+    border-bottom: 1px solid var(--border); 
+    font-size: 14px; 
+    background: #fff;
+}
+tr:nth-child(even) td { background: #F9FAFB; }
+tr:hover td { background: #FEF2F2; }
+
+/* Styling Specific Cells */
+.part-id { font-weight: 600; color: var(--text-dark); }
+.qty-system { font-family: 'Courier New', monospace; font-weight: 600; }
+input[type="number"] {
+    width: 80px;
+    text-align: center;
+    font-weight: 600;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+/* Selisih Badges */
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    min-width: 40px;
+    text-align: center;
+}
+.badge.plus { background: #DCFCE7; color: var(--success); }
+.badge.minus { background: #FEE2E2; color: var(--danger); }
+.badge.zero { background: #F3F4F6; color: var(--neutral); }
+
+/* SCANNER AREA */
+#reader {
+    margin: 20px auto;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    max-width: 400px;
+    display: none;
+}
+
+/* FOOTER ACTIONS */
+.footer-actions {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* TOAST */
+#toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-dark);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 500;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 9999;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+
+/* Highlight Animation */
+.found-highlight { animation: highlightFade 2s; }
+@keyframes highlightFade {
+    0% { background-color: #FEF2F2; }
+    100% { background-color: transparent; }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container { padding: 15px; }
+    .card { padding: 15px; }
+    .footer-actions { justify-content: center; }
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<h2>📦 Stock Opname Sparepart</h2>
+    <h2>📦 Stock Opname Sparepart</h2>
+    <span>v2.1 Modern UI</span>
 </header>
 
 <div class="container">
-<div class="card">
+    <div class="card">
+        
+        <div class="controls">
+            <div class="input-group">
+                <span class="label">Tanggal Opname</span>
+                <input type="date" id="tanggal">
+            </div>
+            
+            <div class="input-group">
+                <span class="label">Import Data</span>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" style="background:none; padding:10px;">
+            </div>
+        </div>
 
-<div class="controls">
-<input type="date" id="tanggal">
-<input type="file" id="fileInput" accept=".xlsx">
-<input type="text" id="search" placeholder="Cari Part / Deskripsi" oninput="filterTable()">
-<button onclick="startScan()">📷 Scan</button>
-<button class="primary" onclick="exportExcel()">⬇ Excel</button>
-<button class="primary" onclick="exportPDF()">⬇ PDF</button>
+        <div class="controls">
+            <div class="input-group" style="grid-column: span 2;">
+                <span class="label">Pencarian</span>
+                <input type="text" id="search" placeholder="Ketik Part Number atau Nama Barang..." oninput="filterTable()">
+            </div>
+            
+            <div class="input-group" style="justify-content: flex-end;">
+                <span class="label">&nbsp;</span>
+                <div style="display:flex; gap:10px;">
+                    <button id="btnScan" class="btn btn-scan" onclick="toggleScan()">📷 Scan Barcode</button>
+                    <button class="btn btn-danger" onclick="clearAll()">🗑 Hapus Semua</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scanner Preview -->
+        <div id="reader"></div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:50px">NO</th>
+                        <th>PART</th>
+                        <th>Deskripsi Part</th>
+                        <th style="width:100px">QTY</th>
+                        <th style="width:100px">QTY FISIK</th>
+                        <th style="width:100px">SELISIH</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                    <!-- Data will load here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer-actions">
+            <button class="btn btn-action" onclick="exportExcel()">⬇ Download Excel</button>
+            <button class="btn btn-primary" onclick="exportPDF()">⬇ Download PDF</button>
+        </div>
+
+    </div>
 </div>
 
-<div id="reader"></div>
-
-<table>
-<thead>
-<tr>
-<th>No</th><th>Part</th><th>Deskripsi</th>
-<th>Qty</th><th>Fisik</th><th>Selisih</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
-
-</div>
-</div>
+<div id="toast">Notifikasi</div>
 
 <script>
-const tbody=document.getElementById("tbody");
-const storageKey="opnameData";
+const tbody = document.getElementById("tbody");
+const storageKey = "opnameDataModern";
+let html5QrCode = null;
+let isScanning = false;
 
-/* ===== LOAD STORAGE ===== */
-window.onload=()=>{
-document.getElementById("tanggal").value=
-localStorage.getItem("tanggal") || new Date().toISOString().split("T")[0];
-loadStorage();
+/* ===== INIT ===== */
+window.onload = () => {
+    document.getElementById("tanggal").value = localStorage.getItem("tanggal_mod") || new Date().toISOString().split("T")[0];
+    loadStorage();
 }
 
-/* ===== EXCEL ===== */
-document.getElementById("fileInput").addEventListener("change",e=>{
-const r=new FileReader();
-r.onload=ev=>{
-const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
-const sh=wb.Sheets[wb.SheetNames[0]];
-const rows=XLSX.utils.sheet_to_json(sh,{header:1});
-tbody.innerHTML="";
-rows.slice(1).forEach((r,i)=>addRow(i+1,r[1],r[2],r[3],0));
-saveStorage();
-}
-r.readAsArrayBuffer(e.target.files[0]);
+/* ===== EXCEL UPLOAD ===== */
+document.getElementById("fileInput").addEventListener("change", e => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+        try {
+            const wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array" });
+            const sh = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sh, { header: 1 });
+            
+            tbody.innerHTML = "";
+            let count = 0;
+            rows.slice(1).forEach((r, i) => {
+                if(!r[1] && !r[2]) return;
+                let part = r[1] || r[0]; 
+                let desc = r[2] || r[1];
+                let qty = r[3] || r[2] || 0;
+                if(isNaN(parseInt(qty)) && !isNaN(parseInt(r[1]))) qty = r[1]; 
+                
+                addRow(i + 1, part, desc, parseInt(qty) || 0, 0);
+                count++;
+            });
+            
+            saveStorage();
+            showToast(`✅ Sukses! ${count} item dimuat`);
+        } catch (err) {
+            showToast("❌ Gagal membaca file Excel");
+            console.error(err);
+        }
+    };
+    reader.readAsArrayBuffer(e.target.files[0]);
 });
 
 /* ===== ADD ROW ===== */
-function addRow(no,part,desc,qty,fisik){
-const tr=document.createElement("tr");
-tr.innerHTML=`
-<td>${no}</td>
-<td>${part}</td>
-<td>${desc}</td>
-<td class="qty">${qty}</td>
-<td><input type="number" value="${fisik}" oninput="calc(this)"></td>
-<td class="selih zero">0</td>`;
-tbody.appendChild(tr);
-calc(tr.querySelector("input"));
+function addRow(no, part, desc, qty, fisik) {
+    const tr = document.createElement("tr");
+    part = part || "-";
+    desc = desc || "-";
+    
+    tr.innerHTML = `
+    <td style="text-align:center; font-weight:500; color:var(--text-gray)">${no}</td>
+    <td class="part-id">${part}</td>
+    <td style="color:var(--text-gray)">${desc}</td>
+    <td class="qty-system text-right">${qty}</td>
+    <td class="text-right"><input type="number" value="${fisik}" oninput="calc(this)" onclick="this.select()"></td>
+    <td class="text-right"><span class="badge zero">0</span></td>`;
+    tbody.appendChild(tr);
+    calc(tr.querySelector("input"));
 }
 
-/* ===== HITUNG ===== */
-function calc(i){
-const r=i.closest("tr");
-const q=parseInt(r.querySelector(".qty").innerText)||0;
-const f=parseInt(i.value)||0;
-const s=f-q;
-const c=r.querySelector(".selih");
-c.innerText=s;
-c.className="selih "+(s>0?"plus":s<0?"minus":"zero");
-saveStorage();
+/* ===== HITUNG SELISIH ===== */
+function calc(input) {
+    const row = input.closest("tr");
+    const qty = parseInt(row.querySelector(".qty-system").innerText) || 0;
+    const fisik = parseInt(input.value) || 0;
+    const selisih = fisik - qty;
+    
+    const el = row.querySelector(".badge");
+    el.innerText = (selisih > 0 ? "+" : "") + selisih;
+    
+    el.className = "badge " + (selisih > 0 ? "plus" : selisih < 0 ? "minus" : "zero");
+    saveStorage();
 }
 
-/* ===== SEARCH ===== */
-function filterTable(){
-const k=document.getElementById("search").value.toLowerCase();
-tbody.querySelectorAll("tr").forEach(r=>{
-r.style.display=
-r.cells[1].innerText.toLowerCase().includes(k)||
-r.cells[2].innerText.toLowerCase().includes(k)?"":"none";
-});
+/* ===== SEARCH & FILTER ===== */
+function filterTable() {
+    const keyword = document.getElementById("search").value.toLowerCase();
+    let visibleCount = 0;
+    let lastVisibleRow = null;
+
+    tbody.querySelectorAll("tr").forEach(r => {
+        const part = r.cells[1].innerText.toLowerCase();
+        const desc = r.cells[2].innerText.toLowerCase();
+        const isMatch = part.includes(keyword) || desc.includes(keyword);
+        
+        r.style.display = isMatch ? "" : "none";
+        r.classList.remove("found-highlight");
+        
+        if(isMatch && keyword.length > 0){
+            visibleCount++;
+            lastVisibleRow = r;
+        }
+    });
+
+    if(visibleCount === 1 && lastVisibleRow) {
+        lastVisibleRow.classList.add("found-highlight");
+        lastVisibleRow.querySelector("input").focus();
+    }
 }
 
-/* ===== SCAN BARCODE / QR ===== */
-function startScan(){
-const qr=new Html5Qrcode("reader");
-qr.start(
-{ facingMode: "environment" },
-{ fps: 10, qrbox: 250 },
-txt=>{
-document.getElementById("search").value=txt;
-filterTable();
-qr.stop();
+/* ===== BARCODE SCANNING ===== */
+function toggleScan(){
+    if(isScanning) return;
+    
+    const readerDiv = document.getElementById("reader");
+    readerDiv.style.display = "block";
+    
+    html5QrCode = new Html5Qrcode("reader");
+    
+    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    
+    html5QrCode.start(
+        { facingMode: "environment" }, 
+        config,
+        onScanSuccess,
+        onScanFailure
+    ).then(() => {
+        isScanning = true;
+        document.getElementById("btnScan").innerText = "⏳ Scanning...";
+        document.getElementById("btnScan").classList.add("btn-danger");
+    }).catch(err => {
+        showToast("❌ Kamera tidak bisa diakses");
+        readerDiv.style.display = "none";
+    });
 }
-);
+
+function onScanSuccess(decodedText) {
+    document.getElementById("search").value = decodedText;
+    filterTable();
+    
+    const visibleRows = [...tbody.querySelectorAll("tr")].filter(r => r.style.display !== "none");
+    
+    if(visibleRows.length === 1){
+        stopScan();
+        visibleRows[0].classList.add("found-highlight");
+        visibleRows[0].querySelector("input").focus();
+        showToast("✅ Part ditemukan!");
+        if(navigator.vibrate) navigator.vibrate(200);
+    } else {
+        showToast(`⚠️ Ditemukan ${visibleRows.length} part.`);
+    }
+}
+
+function onScanFailure(error) { }
+
+function stopScan() {
+    if(html5QrCode && isScanning) {
+        html5QrCode.stop().then(() => {
+            document.getElementById("reader").style.display = "none";
+            document.getElementById("btnScan").innerText = "📷 Scan Barcode";
+            document.getElementById("btnScan").classList.remove("btn-danger");
+            isScanning = false;
+        }).catch(err => console.error(err));
+    }
 }
 
 /* ===== STORAGE ===== */
-function saveStorage(){
-const data=[];
-tbody.querySelectorAll("tr").forEach(r=>{
-data.push({
-part:r.cells[1].innerText,
-desc:r.cells[2].innerText,
-qty:r.cells[3].innerText,
-fisik:r.cells[4].querySelector("input").value
-});
-});
-localStorage.setItem(storageKey,JSON.stringify(data));
-localStorage.setItem("tanggal",document.getElementById("tanggal").value);
+function saveStorage() {
+    const data = [];
+    tbody.querySelectorAll("tr").forEach(r => {
+        data.push({
+            part: r.cells[1].innerText,
+            desc: r.cells[2].innerText,
+            qty: r.cells[3].innerText,
+            fisik: r.cells[4].querySelector("input").value
+        });
+    });
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    localStorage.setItem("tanggal_mod", document.getElementById("tanggal").value);
 }
 
-function loadStorage(){
-const data=JSON.parse(localStorage.getItem(storageKey)||"[]");
-tbody.innerHTML="";
-data.forEach((d,i)=>addRow(i+1,d.part,d.desc,d.qty,d.fisik));
+function loadStorage() {
+    const data = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    tbody.innerHTML = "";
+    if(data.length > 0) {
+        data.forEach((d, i) => addRow(i + 1, d.part, d.desc, d.qty, d.fisik));
+    }
+}
+
+function clearAll() {
+    if(confirm("Hapus semua data opname?")) {
+        localStorage.removeItem(storageKey);
+        localStorage.removeItem("tanggal_mod");
+        location.reload();
+    }
 }
 
 /* ===== EXPORT EXCEL ===== */
-function exportExcel(){
-const data=[["Tanggal",document.getElementById("tanggal").value]];
-data.push(["No","Part","Deskripsi","Qty","Fisik","Selisih"]);
-tbody.querySelectorAll("tr").forEach(r=>{
-data.push([
-r.cells[0].innerText,
-r.cells[1].innerText,
-r.cells[2].innerText,
-r.cells[3].innerText,
-r.cells[4].querySelector("input").value,
-r.cells[5].innerText
-]);
-});
-const ws=XLSX.utils.aoa_to_sheet(data);
-const wb=XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb,ws,"Opname");
-XLSX.writeFile(wb,"stock-opname.xlsx");
+function exportExcel() {
+    if(tbody.rows.length === 0) return showToast("Data kosong!");
+    
+    const d = document.getElementById("tanggal").value;
+    // Header disesuaikan dengan permintaan
+    const data = [["LAPORAN STOCK OPNAME"], ["Tanggal", d], [], ["NO", "PART", "Deskripsi Part", "QTY", "QTY FISIK", "SELISIH", "KET"]];
+    
+    tbody.querySelectorAll("tr").forEach(r => {
+        const s = parseInt(r.querySelector(".badge").innerText);
+        let ket = s === 0 ? "MATCH" : (s > 0 ? "PLUS" : "MINUS");
+        data.push([
+            r.cells[0].innerText, r.cells[1].innerText, r.cells[2].innerText,
+            r.cells[3].innerText, r.cells[4].querySelector("input").value,
+            r.querySelector(".badge").innerText, ket
+        ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Opname");
+    XLSX.writeFile(wb, `Opname-${d}.xlsx`);
 }
 
 /* ===== EXPORT PDF ===== */
-function exportPDF(){
-const { jsPDF } = window.jspdf;
-const doc=new jsPDF();
-doc.text("Stock Opname Sparepart",14,14);
-doc.text("Tanggal : "+document.getElementById("tanggal").value,14,22);
-const rows=[];
-tbody.querySelectorAll("tr").forEach(r=>{
-rows.push([
-r.cells[0].innerText,
-r.cells[1].innerText,
-r.cells[2].innerText,
-r.cells[3].innerText,
-r.cells[4].querySelector("input").value,
-r.cells[5].innerText
-]);
-});
-doc.autoTable({
-startY:26,
-head:[["No","Part","Deskripsi","Qty","Fisik","Selisih"]],
-body:rows,
-styles:{fontSize:8}
-});
-doc.save("stock-opname.pdf");
+function exportPDF() {
+    if(tbody.rows.length === 0) return showToast("Data kosong!");
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+    const d = document.getElementById("tanggal").value;
+    
+    doc.setFontSize(18);
+    doc.setTextColor(31, 41, 55); // Dark
+    doc.text("Laporan Stock Opname", 14, 18);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text("Tanggal : " + d, 14, 26);
+    
+    const rows = [];
+    tbody.querySelectorAll("tr").forEach(r => {
+        rows.push([
+            r.cells[0].innerText, r.cells[1].innerText, r.cells[2].innerText.substring(0, 35),
+            r.cells[3].innerText, r.cells[4].querySelector("input").value,
+            r.querySelector(".badge").innerText
+        ]);
+    });
+
+    doc.autoTable({
+        startY: 32,
+        // Header disesuaikan dengan permintaan
+        head: [["NO", "PART", "Deskripsi Part", "QTY", "QTY FISIK", "SELISIH"]],
+        body: rows,
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [220, 38, 38], textColor: '#fff', fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [249, 250, 251] }
+    });
+    
+    doc.save(`Opname-${d}.pdf`);
+}
+
+/* ===== TOAST ===== */
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.innerText = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 3000);
 }
 </script>
 
