@@ -78,16 +78,7 @@ header span { font-size: 12px; opacity: 0.9; font-weight: 400; background: rgba(
 
 /* Mobile Specific: Pindahkan Scanner ke paling atas */
 @media (max-width: 768px) {
-    .main-content-wrapper {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    body {
-        display: flex;
-        flex-direction: column;
-    }
-
+    body { display: flex; flex-direction: column; }
     #reader-container {
         order: -1; 
         position: sticky;
@@ -98,7 +89,6 @@ header span { font-size: 12px; opacity: 0.9; font-weight: 400; background: rgba(
         margin: 0;
         border-radius: 0;
     }
-
     header { order: 0; }
     .container { order: 1; padding: 15px; }
     header h2 { font-size: 1rem; }
@@ -157,6 +147,8 @@ input:focus {
 .btn-action:hover { background: #E5E7EB; }
 .btn-scan { background: var(--text-dark); color: #fff; }
 .btn-scan.active { background: var(--danger); }
+.btn-nav { background: #fff; color: var(--text-dark); border: 2px solid var(--border); padding: 8px 15px; font-size: 12px;}
+.btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* TABLE */
 .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-top: 5px; }
@@ -176,6 +168,19 @@ input[type="number"] { width: 80px; text-align: center; font-weight: 600; paddin
 .badge.minus { background: #FEE2E2; color: var(--danger); }
 .badge.zero { background: #F3F4F6; color: var(--neutral); }
 
+/* PAGINATION CONTROLS */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+}
+.page-info { font-weight: 600; color: var(--text-dark); font-size: 14px; }
+.page-total { font-size: 12px; color: var(--text-gray); }
+
 /* SCANNER STYLING */
 #reader {
     width: 100%;
@@ -186,30 +191,34 @@ input[type="number"] { width: 80px; text-align: center; font-weight: 600; paddin
 }
 
 @media (max-width: 768px) {
-    #reader {
-        border-radius: 0;
-        border-bottom: 4px solid var(--text-dark);
-    }
+    #reader { border-radius: 0; border-bottom: 4px solid var(--text-dark); }
 }
 
 .scanner-line {
     position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 2px;
+    top: 50%; left: 0; width: 100%; height: 2px;
     background: rgba(255, 0, 0, 0.8);
     box-shadow: 0 0 20px 5px rgba(255, 0, 0, 0.6);
     z-index: 99;
     pointer-events: none;
     animation: laserMove 1.5s infinite linear;
 }
+.scanner-line.paused { animation-play-state: paused; opacity: 0; transition: opacity 0.3s; }
 
 @keyframes laserMove {
     0% { top: 20%; opacity: 0.5; }
     50% { top: 80%; opacity: 1; }
     100% { top: 20%; opacity: 0.5; }
 }
+
+/* Overlay Cooldown */
+#cooldown-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 100; display: none;
+}
+#cooldown-text { color: #fff; font-size: 2rem; font-weight: bold; font-family: monospace; }
 
 /* FOOTER ACTIONS */
 .footer-actions { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
@@ -228,11 +237,14 @@ input[type="number"] { width: 80px; text-align: center; font-weight: 600; paddin
 <!-- Container untuk Scanner -->
 <div id="reader-container">
     <div id="reader"></div>
+    <div id="cooldown-overlay">
+        <div id="cooldown-text">3</div>
+    </div>
 </div>
 
 <header>
     <h2>📦 Stock Opname</h2>
-    <span>v3.2 Auto Add</span>
+    <span>v4.0 Pagination</span>
 </header>
 
 <div class="main-content-wrapper">
@@ -287,6 +299,16 @@ input[type="number"] { width: 80px; text-align: center; font-weight: 600; paddin
                 </table>
             </div>
 
+            <!-- Pagination Controls -->
+            <div class="pagination-controls" id="pagination-box">
+                <button class="btn btn-nav" id="btnPrev" onclick="prevPage()">« Back</button>
+                <div class="page-info">
+                    Hal: <span id="currentPageDisplay">1</span> 
+                    <span class="page-total">dari <span id="totalPageDisplay">1</span></span>
+                </div>
+                <button class="btn btn-nav" id="btnNext" onclick="nextPage()">Next »</button>
+            </div>
+
             <div class="footer-actions">
                 <button class="btn btn-action" onclick="exportExcel()">⬇ Excel</button>
                 <button class="btn btn-primary" onclick="exportPDF()">⬇ PDF</button>
@@ -297,17 +319,24 @@ input[type="number"] { width: 80px; text-align: center; font-weight: 600; paddin
 </div>
 
 <div id="toast">Notifikasi</div>
-
-<!-- Audio Beep Base64 -->
-<audio id="successSound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp+ej35qYF9lc4GKkJSPiIV9dG1wdn6Gj5SVkIuFfHRvcXaBh46VkI2Jgnx0cXd9hYyTkomHgXx1c3h+g4qRjoqGgHx2dnh/hYmPioeEfnd2eX6EioyJhoN/eHZ4foOIi4mGgn98eHl9goiKiIWBf3x4eX2Bh4qHhIB/fHp6foGGioaDf356e3uAhImHgn9+e3x+gISJhYJ/fXt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhQ=="></audio>
+<audio id="successSound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp+ej35qYF9lc4GKkJSPiIV9dG1wdn6Gj5SVkIuFfHRvcXaBh46VkI2Jgnx0cXd9hYyTkomHgXx1c3h+g4qRjoqGgHx2dnh/hYmPioeEfnd2eX6EioyJhoN/eHZ4foOIi4mGgn98eHl9goiKiIWBf3x4eX2Bh4qHhIB/fHp6foGGioaDf356e3uAhImHgn9+e3x+gISJhYJ/fXt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhQ=="></audio>
 
 <script>
 const tbody = document.getElementById("tbody");
 const storageKey = "opnameDataModern";
 const readerContainer = document.getElementById("reader-container");
+const cooldownOverlay = document.getElementById("cooldown-overlay");
+const cooldownText = document.getElementById("cooldown-text");
+
 let html5QrCode = null;
 let isScanning = false;
+let isCooldown = false;
 const beepSound = document.getElementById("successSound");
+
+// --- Variabel Pagination ---
+let currentPage = 1;
+const rowsPerPage = 50;
+let allData = []; // Menyimpan seluruh data dari storage/excel
 
 /* ===== INIT ===== */
 window.onload = () => {
@@ -324,8 +353,7 @@ document.getElementById("fileInput").addEventListener("change", e => {
             const sh = wb.Sheets[wb.SheetNames[0]];
             const rows = XLSX.utils.sheet_to_json(sh, { header: 1 });
             
-            tbody.innerHTML = "";
-            let count = 0;
+            allData = []; // Reset data global
             rows.slice(1).forEach((r, i) => {
                 if(!r[1] && !r[2]) return;
                 let part = r[1] || r[0]; 
@@ -333,12 +361,18 @@ document.getElementById("fileInput").addEventListener("change", e => {
                 let qty = r[3] || r[2] || 0;
                 if(isNaN(parseInt(qty)) && !isNaN(parseInt(r[1]))) qty = r[1]; 
                 
-                addRow(i + 1, part, desc, parseInt(qty) || 0, 0);
-                count++;
+                allData.push({
+                    part: part,
+                    desc: desc,
+                    qty: parseInt(qty) || 0,
+                    fisik: 0
+                });
             });
             
+            currentPage = 1;
             saveStorage();
-            showToast(`✅ ${count} item dimuat`);
+            renderTable();
+            showToast(`✅ ${allData.length} item dimuat`);
         } catch (err) {
             showToast("❌ Gagal membaca file");
             console.error(err);
@@ -346,6 +380,50 @@ document.getElementById("fileInput").addEventListener("change", e => {
     };
     reader.readAsArrayBuffer(e.target.files[0]);
 });
+
+/* ===== RENDER TABLE (LOGIC PAGINATION) ===== */
+function renderTable() {
+    tbody.innerHTML = "";
+    
+    // Hitung range data untuk halaman ini
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    const paginatedData = allData.slice(startIndex, endIndex);
+
+    // Tampilkan data
+    paginatedData.forEach((d, i) => {
+        const globalIndex = startIndex + i + 1; // Nomor urut global
+        addRow(globalIndex, d.part, d.desc, d.qty, d.fisik);
+    });
+
+    updatePaginationControls();
+}
+
+function updatePaginationControls() {
+    const totalPages = Math.ceil(allData.length / rowsPerPage);
+    document.getElementById("currentPageDisplay").innerText = currentPage;
+    document.getElementById("totalPageDisplay").innerText = totalPages || 1;
+    
+    document.getElementById("btnPrev").disabled = currentPage === 1;
+    document.getElementById("btnNext").disabled = currentPage >= totalPages || totalPages === 0;
+}
+
+function nextPage() {
+    const totalPages = Math.ceil(allData.length / rowsPerPage);
+    if (currentPage < totalPages) {
+        if(isScanning) pauseScanTemporarily(); // Jeda scanner saat ganti halaman
+        currentPage++;
+        renderTable();
+    }
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        if(isScanning) pauseScanTemporarily(); // Jeda scanner saat ganti halaman
+        currentPage--;
+        renderTable();
+    }
+}
 
 /* ===== ADD ROW ===== */
 function addRow(no, part, desc, qty, fisik) {
@@ -364,60 +442,73 @@ function addRow(no, part, desc, qty, fisik) {
     calc(tr.querySelector("input"));
 }
 
-/* ===== HITUNG SELISIH ===== */
+/* ===== HITUNG SELISIH & UPDATE DATA ===== */
 function calc(input) {
     const row = input.closest("tr");
+    const globalIndex = parseInt(row.cells[0].innerText) - 1; // Index array (0-based)
+    
     const qty = parseInt(row.querySelector(".qty-system").innerText) || 0;
     const fisik = parseInt(input.value) || 0;
     const selisih = fisik - qty;
     
+    // Update Tampilan
     const el = row.querySelector(".badge");
     el.innerText = (selisih > 0 ? "+" : "") + selisih;
-    
     el.className = "badge " + (selisih > 0 ? "plus" : selisih < 0 ? "minus" : "zero");
+    
+    // Update Array Global
+    if(allData[globalIndex]) {
+        allData[globalIndex].fisik = fisik;
+    }
+    
     saveStorage();
 }
 
 /* ===== SEARCH & FILTER ===== */
 function filterTable() {
     const keyword = document.getElementById("search").value.toLowerCase();
-    let visibleCount = 0;
-    let lastVisibleRow = null;
+    
+    // Jika pencarian kosong, kembalikan ke mode pagination normal
+    if (keyword.length === 0) {
+        renderTable();
+        return;
+    }
 
-    tbody.querySelectorAll("tr").forEach(r => {
-        const part = r.cells[1].innerText.toLowerCase();
-        const desc = r.cells[2].innerText.toLowerCase();
+    // Jika ada pencarian, tampilkan SEMUA hasil (tidak terpaginasi)
+    tbody.innerHTML = "";
+    let count = 0;
+    allData.forEach((d, i) => {
+        const part = d.part.toLowerCase();
+        const desc = d.desc.toLowerCase();
         const isMatch = part.includes(keyword) || desc.includes(keyword);
         
-        r.style.display = isMatch ? "" : "none";
-        r.classList.remove("found-highlight");
-        
-        if(isMatch && keyword.length > 0){
-            visibleCount++;
-            lastVisibleRow = r;
+        if(isMatch) {
+            addRow(i + 1, d.part, d.desc, d.qty, d.fisik);
+            count++;
         }
     });
-
-    if(visibleCount === 1 && lastVisibleRow) {
-        // Jangan auto focus saat scan mode aktif, agar tidak mengganggu
-        if(!isScanning) {
-            lastVisibleRow.classList.add("found-highlight");
-            lastVisibleRow.querySelector("input").focus();
-        }
-    }
+    
+    // Sembunyikan pagination saat search
+    document.getElementById("pagination-box").style.display = count > 0 || keyword.length > 0 ? "none" : "flex";
+    if(count === 0) tbody.innerHTML = "<tr><td colspan='6' style='text-align:center; color:var(--text-gray)'>Tidak ditemukan</td></tr>";
 }
 
 /* ===== BARCODE SCANNING ===== */
 function toggleScan(){
     if(isScanning) {
-        stopScan();
+        stopScan(true); // true = stop permanen
         return;
     }
     
+    startScanSequence();
+}
+
+function startScanSequence() {
     readerContainer.style.display = "block";
     
-    if(!document.getElementById("scan-line-overlay")) {
-        const line = document.createElement("div");
+    let line = document.getElementById("scan-line-overlay");
+    if(!line) {
+        line = document.createElement("div");
         line.id = "scan-line-overlay";
         line.className = "scanner-line";
         document.getElementById("reader").appendChild(line);
@@ -427,11 +518,7 @@ function toggleScan(){
     
     const config = { 
         fps: 60, 
-        qrbox: function(viewfinderWidth, viewfinderHeight) {
-            let minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-            let qrboxSize = Math.floor(minEdge * 0.7);
-            return { width: qrboxSize, height: qrboxSize };
-        },
+        qrbox: function(w, h) { return { width: w*0.7, height: h*0.7 }; },
         aspectRatio: 1.0
     };
     
@@ -442,13 +529,12 @@ function toggleScan(){
         onScanFailure
     ).then(() => {
         isScanning = true;
+        isCooldown = false;
         const btn = document.getElementById("btnScan");
         btn.innerText = "❌ Stop";
         btn.classList.add("active");
         
-        if(window.innerWidth <= 768) {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        if(window.innerWidth <= 768) window.scrollTo({ top: 0, behavior: 'smooth' });
     }).catch(err => {
         showToast("❌ Kamera gagal");
         readerContainer.style.display = "none";
@@ -456,79 +542,107 @@ function toggleScan(){
 }
 
 function onScanSuccess(decodedText) {
-    // Mainkan Suara
-    try {
-        beepSound.currentTime = 0;
-        beepSound.play();
-    } catch(e){ console.log("Audio blocked"); }
+    if(isCooldown) return;
 
-    // Isi search box & filter
-    const searchInput = document.getElementById("search");
-    searchInput.value = decodedText;
+    try { beepSound.currentTime = 0; beepSound.play(); } catch(e){}
+
+    // Update Search & Filter Logic
+    document.getElementById("search").value = decodedText;
     
-    // Filter tabel berdasarkan hasil scan
-    filterTable();
+    // Cari data di dalam array global
+    const foundIndex = allData.findIndex(d => d.part.toLowerCase() === decodedText.toLowerCase());
     
-    // Logika Penambahan Otomatis (+1)
-    const visibleRows = [...tbody.querySelectorAll("tr")].filter(r => r.style.display !== "none");
-    
-    if(visibleRows.length === 1){
-        // Ketemu 1 baris -> Tambah 1
-        const row = visibleRows[0];
-        const inputFisik = row.querySelector("input");
+    if(foundIndex !== -1){
+        const d = foundIndex;
         
-        // Tambah nilai
-        let currentVal = parseInt(inputFisik.value) || 0;
-        inputFisik.value = currentVal + 1;
-        
-        // Trigger kalkulasi
-        calc(inputFisik);
-        
-        // Visual Feedback
-        row.classList.remove("found-highlight");
-        void row.offsetWidth; // trigger reflow
-        row.classList.add("found-highlight");
-        
-        showToast(`✅ ${decodedText} (+1)`);
-        if(navigator.vibrate) navigator.vibrate(100);
-        
-        // TIDAK STOP SCAN -> Bisa scan lagi
-    } else if(visibleRows.length > 1) {
-        showToast(`⚠️ Ketemu ${visibleRows.length} part (Double?)`);
+        // Jika data ada di halaman lain, pindah halaman
+        const targetPage = Math.ceil((d + 1) / rowsPerPage);
+        if(targetPage !== currentPage) {
+            currentPage = targetPage;
+            renderTable(); // Render halaman target
+        }
+
+        // Ambil baris yang sesuai di DOM
+        // Karena nomor urut di tabel adalah index global + 1
+        const rows = tbody.querySelectorAll("tr");
+        let targetRow = null;
+        rows.forEach(r => {
+            if(parseInt(r.cells[0].innerText) === (d + 1)) targetRow = r;
+        });
+
+        if(targetRow) {
+            const inputFisik = targetRow.querySelector("input");
+            let currentVal = parseInt(inputFisik.value) || 0;
+            inputFisik.value = currentVal + 1;
+            calc(inputFisik);
+            
+            targetRow.classList.remove("found-highlight");
+            void targetRow.offsetWidth; 
+            targetRow.classList.add("found-highlight");
+            
+            showToast(`✅ ${decodedText} (+1)`);
+            if(navigator.vibrate) navigator.vibrate(100);
+            
+            startCooldown(3);
+        }
     } else {
-        showToast(`❌ Part ${decodedText} tidak ada`);
+        showToast(`❌ Part tidak ditemukan`);
+    }
+}
+
+function startCooldown(seconds) {
+    isCooldown = true;
+    const line = document.getElementById("scan-line-overlay");
+    if(line) line.classList.add("paused");
+    
+    cooldownOverlay.style.display = "flex";
+    let count = seconds;
+    cooldownText.innerText = count;
+    
+    const interval = setInterval(() => {
+        count--;
+        cooldownText.innerText = count;
+        if(count <= 0) {
+            clearInterval(interval);
+            isCooldown = false;
+            cooldownOverlay.style.display = "none";
+            if(line) line.classList.remove("paused");
+        }
+    }, 1000);
+}
+
+// Jeda sementara saat ganti halaman, lalu lanjutkan otomatis
+function pauseScanTemporarily() {
+    if(html5QrCode && isScanning) {
+        html5QrCode.pause(); // Hanya jeda
+        // Tidak perlu stop full, cukup sembunyikan sejenak
+    }
+}
+
+function stopScan(isPermanent = false) {
+    if(html5QrCode && isScanning) {
+        html5QrCode.stop().then(() => {
+            if(isPermanent) {
+                readerContainer.style.display = "none";
+                const line = document.getElementById("scan-line-overlay");
+                if(line) line.remove();
+                cooldownOverlay.style.display = "none";
+                isCooldown = false;
+                
+                const btn = document.getElementById("btnScan");
+                btn.innerText = "📷 Scan";
+                btn.classList.remove("active");
+                isScanning = false;
+            }
+        }).catch(err => console.error(err));
     }
 }
 
 function onScanFailure(error) { }
 
-function stopScan() {
-    if(html5QrCode && isScanning) {
-        html5QrCode.stop().then(() => {
-            readerContainer.style.display = "none";
-            const line = document.getElementById("scan-line-overlay");
-            if(line) line.remove();
-            
-            const btn = document.getElementById("btnScan");
-            btn.innerText = "📷 Scan";
-            btn.classList.remove("active");
-            isScanning = false;
-        }).catch(err => console.error(err));
-    }
-}
-
 /* ===== STORAGE ===== */
 function saveStorage() {
-    const data = [];
-    tbody.querySelectorAll("tr").forEach(r => {
-        data.push({
-            part: r.cells[1].innerText,
-            desc: r.cells[2].innerText,
-            qty: r.cells[3].innerText,
-            fisik: r.cells[4].querySelector("input").value
-        });
-    });
-    localStorage.setItem(storageKey, JSON.stringify(data));
+    localStorage.setItem(storageKey, JSON.stringify(allData));
     localStorage.setItem("tanggal_mod", document.getElementById("tanggal").value);
 }
 
@@ -539,10 +653,9 @@ function manualSave() {
 
 function loadStorage() {
     const data = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    tbody.innerHTML = "";
-    if(data.length > 0) {
-        data.forEach((d, i) => addRow(i + 1, d.part, d.desc, d.qty, d.fisik));
-    }
+    allData = data; // Load ke array global
+    currentPage = 1;
+    renderTable(); // Render halaman pertama
 }
 
 function clearAll() {
@@ -555,18 +668,17 @@ function clearAll() {
 
 /* ===== EXPORT EXCEL ===== */
 function exportExcel() {
-    if(tbody.rows.length === 0) return showToast("Data kosong!");
+    if(allData.length === 0) return showToast("Data kosong!");
     
     const d = document.getElementById("tanggal").value;
     const data = [["LAPORAN STOCK OPNAME"], ["Tanggal", d], [], ["NO", "PART", "Deskripsi Part", "QTY", "QTY FISIK", "SELISIH", "KET"]];
     
-    tbody.querySelectorAll("tr").forEach(r => {
-        const s = parseInt(r.querySelector(".badge").innerText);
+    allData.forEach((item, i) => {
+        const s = item.fisik - item.qty;
         let ket = s === 0 ? "MATCH" : (s > 0 ? "PLUS" : "MINUS");
         data.push([
-            r.cells[0].innerText, r.cells[1].innerText, r.cells[2].innerText,
-            r.cells[3].innerText, r.cells[4].querySelector("input").value,
-            r.querySelector(".badge").innerText, ket
+            i + 1, item.part, item.desc,
+            item.qty, item.fisik, s, ket
         ]);
     });
 
@@ -578,7 +690,7 @@ function exportExcel() {
 
 /* ===== EXPORT PDF ===== */
 function exportPDF() {
-    if(tbody.rows.length === 0) return showToast("Data kosong!");
+    if(allData.length === 0) return showToast("Data kosong!");
     
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l', 'mm', 'a4');
@@ -593,11 +705,10 @@ function exportPDF() {
     doc.text("Tanggal : " + d, 14, 26);
     
     const rows = [];
-    tbody.querySelectorAll("tr").forEach(r => {
+    allData.forEach((item, i) => {
         rows.push([
-            r.cells[0].innerText, r.cells[1].innerText, r.cells[2].innerText.substring(0, 35),
-            r.cells[3].innerText, r.cells[4].querySelector("input").value,
-            r.querySelector(".badge").innerText
+            i + 1, item.part, item.desc.substring(0, 35),
+            item.qty, item.fisik, item.fisik - item.qty
         ]);
     });
 
