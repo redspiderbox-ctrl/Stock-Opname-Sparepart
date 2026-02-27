@@ -96,160 +96,94 @@ input:focus {
     gap: 8px;
 }
 
-.btn-primary {
-    background: var(--primary);
-    color: #fff;
-    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2);
-}
-.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 8px rgba(220, 38, 38, 0.25); }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.2); }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
 
-.btn-success {
-    background: var(--success);
-    color: #fff;
-    box-shadow: 0 4px 6px rgba(22, 163, 74, 0.2);
-}
-.btn-success:hover { background: #15803d; transform: translateY(-2px); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #15803d; }
 
-.btn-danger {
-    background: transparent;
-    color: var(--danger);
-    border: 2px solid var(--border);
-}
+.btn-danger { background: transparent; color: var(--danger); border: 2px solid var(--border); }
 .btn-danger:hover { background: #FEF2F2; border-color: var(--danger); }
 
-.btn-action {
-    background: #F3F4F6;
-    color: var(--text-dark);
-    border: 1px solid var(--border);
-}
+.btn-action { background: #F3F4F6; color: var(--text-dark); border: 1px solid var(--border); }
 .btn-action:hover { background: #E5E7EB; }
 
-.btn-scan {
-    background: var(--text-dark);
-    color: #fff;
-}
+.btn-scan { background: var(--text-dark); color: #fff; }
 
 /* TABLE */
 .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-top: 10px; }
 table { width: 100%; border-collapse: collapse; min-width: 800px; }
-th { 
-    background: #F9FAFB; 
-    padding: 14px 16px; 
-    text-align: left; 
-    font-size: 12px; 
-    font-weight: 700; 
-    color: var(--text-gray); 
-    text-transform: uppercase;
-    border-bottom: 2px solid var(--border);
-}
-td { 
-    padding: 14px 16px; 
-    border-bottom: 1px solid var(--border); 
-    font-size: 14px; 
-    background: #fff;
-}
+th { background: #F9FAFB; padding: 14px 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; border-bottom: 2px solid var(--border); }
+td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; background: #fff; }
 tr:nth-child(even) td { background: #F9FAFB; }
 tr:hover td { background: #FEF2F2; }
 
-/* Styling Specific Cells */
 .part-id { font-weight: 600; color: var(--text-dark); }
 .qty-system { font-family: 'Courier New', monospace; font-weight: 600; }
-input[type="number"] {
-    width: 80px;
-    text-align: center;
-    font-weight: 600;
-    padding: 8px;
-    border-radius: 6px;
-}
+input[type="number"] { width: 80px; text-align: center; font-weight: 600; padding: 8px; border-radius: 6px; }
 
 /* Selisih Badges */
-.badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    display: inline-block;
-    min-width: 40px;
-    text-align: center;
-}
+.badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-block; min-width: 40px; text-align: center; }
 .badge.plus { background: #DCFCE7; color: var(--success); }
 .badge.minus { background: #FEE2E2; color: var(--danger); }
 .badge.zero { background: #F3F4F6; color: var(--neutral); }
 
-/* SCANNER AREA & OVERLAY */
+/* SCANNER AREA - KECIL & FOKUS */
 #reader {
-    margin: 20px auto;
-    border-radius: 12px;
+    margin: 0 auto; /* Posisi tengah */
+    margin-bottom: 20px;
+    border-radius: 16px;
     overflow: hidden;
     background: #000;
-    max-width: 400px;
-    position: relative; /* Penting untuk overlay */
+    max-width: 280px; /* Ukuran diperkecil agar fokus */
+    width: 100%;
+    position: relative;
     display: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    border: 4px solid var(--text-dark);
 }
 
-/* Garis Sensor Tengah */
+/* Pembungkus untuk posisi relatif garis */
+#reader video { border-radius: 12px; }
+
+/* Garis Sensor Laser */
 .scanner-line {
     position: absolute;
     top: 50%;
     left: 0;
     width: 100%;
-    height: 3px;
-    background: var(--primary);
-    box-shadow: 0 0 15px 5px rgba(220, 38, 38, 0.7); /* Glow Merah */
+    height: 2px;
+    background: rgba(255, 0, 0, 0.8);
+    box-shadow: 0 0 20px 5px rgba(255, 0, 0, 0.6); /* Glow Merah */
     z-index: 99;
-    pointer-events: none; /* Agar tidak menghalangi sentuhan */
-    animation: scanMove 2s infinite linear; /* Animasi gerak */
+    pointer-events: none;
+    animation: laserMove 1.5s infinite linear;
 }
 
-@keyframes scanMove {
-    0% { top: 30%; opacity: 0.8; }
-    50% { top: 70%; opacity: 1; }
-    100% { top: 30%; opacity: 0.8; }
+/* Area Target Overlay (Kotak Fokus) */
+.scan-region-highlight {
+    border: 2px dashed rgba(255, 255, 255, 0.5) !important;
+    border-radius: 8px;
+}
+
+/* Animasi Gerak Garis */
+@keyframes laserMove {
+    0% { top: 20%; opacity: 0.5; }
+    50% { top: 80%; opacity: 1; }
+    100% { top: 20%; opacity: 0.5; }
 }
 
 /* FOOTER ACTIONS */
-.footer-actions {
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: flex-end;
-}
+.footer-actions { margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
 
 /* TOAST */
-#toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--text-dark);
-    color: #fff;
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-weight: 500;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    opacity: 0;
-    transition: opacity 0.3s, transform 0.3s;
-    z-index: 9999;
-}
+#toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--text-dark); color: #fff; padding: 12px 24px; border-radius: 50px; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 9999; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
 
-/* Highlight Animation */
 .found-highlight { animation: highlightFade 2s; }
-@keyframes highlightFade {
-    0% { background-color: #FEF2F2; }
-    100% { background-color: transparent; }
-}
+@keyframes highlightFade { 0% { background-color: #FEF2F2; } 100% { background-color: transparent; } }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .container { padding: 15px; }
-    .card { padding: 15px; }
-    .footer-actions { justify-content: center; }
-}
+@media (max-width: 768px) { .container { padding: 15px; } .card { padding: 15px; } }
 </style>
 </head>
 
@@ -257,7 +191,7 @@ input[type="number"] {
 
 <header>
     <h2>📦 Stock Opname Sparepart</h2>
-    <span>v2.3 Pro Scanner</span>
+    <span>v3.0 Precision Scan</span>
 </header>
 
 <div class="container">
@@ -289,16 +223,14 @@ input[type="number"] {
             <div class="input-group" style="justify-content: flex-end;">
                 <span class="label">&nbsp;</span>
                 <div style="display:flex; gap:10px;">
-                    <button id="btnScan" class="btn btn-scan" onclick="toggleScan()">📷 Scan Barcode</button>
-                    <button class="btn btn-danger" onclick="clearAll()">🗑 Hapus Semua</button>
+                    <button id="btnScan" class="btn btn-scan" onclick="toggleScan()">📷 Scan</button>
+                    <button class="btn btn-danger" onclick="clearAll()">🗑 Hapus</button>
                 </div>
             </div>
         </div>
 
-        <!-- Scanner Preview -->
-        <div id="reader">
-            <!-- Garis Scanner akan dimasukkan via JS -->
-        </div>
+        <!-- Scanner Preview (Ukuran Kecil) -->
+        <div id="reader"></div>
 
         <div class="table-wrapper">
             <table>
@@ -312,15 +244,13 @@ input[type="number"] {
                         <th style="width:100px">SELISIH</th>
                     </tr>
                 </thead>
-                <tbody id="tbody">
-                    <!-- Data will load here -->
-                </tbody>
+                <tbody id="tbody"></tbody>
             </table>
         </div>
 
         <div class="footer-actions">
-            <button class="btn btn-action" onclick="exportExcel()">⬇ Download Excel</button>
-            <button class="btn btn-primary" onclick="exportPDF()">⬇ Download PDF</button>
+            <button class="btn btn-action" onclick="exportExcel()">⬇ Excel</button>
+            <button class="btn btn-primary" onclick="exportPDF()">⬇ PDF</button>
         </div>
 
     </div>
@@ -328,16 +258,14 @@ input[type="number"] {
 
 <div id="toast">Notifikasi</div>
 
-<!-- Audio Beep Base64 (Tidak perlu file eksternal) -->
-<audio id="successSound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp+ej35qYF9lc4GKkJSPiIV9dG1wdn6Gj5SVkIuFfHRvcXaBh46VkI2Jgnx0cXd9hYyTkomHgXx1c3h+g4qRjoqGgHx2dnh/hYmPioeEfnd2eX6EioyJhoN/eHZ4foOIi4mGgn98eHl9goiKiIWBf3x4eX2Bh4qHhIB/fHp6foGGioaDf356e3uAhImHgn9+e3x+gISJhYJ/fXt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhQ=="></audio>
+<!-- Audio Beep Base64 -->
+<audio id="successSound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp+ej35qYF9lc4GKkJSPiIV9dG1wdn6Gj5SVkIuFfHRvcXaBh46VkI2Jgnx0cXd9hYyTkomHgXx1c3h+g4qRjoqGgHx2dnh/hYmPioeEfnd2eX6EioyJhoN/eHZ4foOIi4mGgn98eHl9goiKiIWBf3x4eX2Bh4qHhIB/fHp6foGGioaDf356e3uAhImHgn9+e3x+gISJhYJ/fXt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhQ=="></audio>
 
 <script>
 const tbody = document.getElementById("tbody");
 const storageKey = "opnameDataModern";
 let html5QrCode = null;
 let isScanning = false;
-
-// Base64 Audio Beep singkat
 const beepSound = document.getElementById("successSound");
 
 /* ===== INIT ===== */
@@ -369,7 +297,7 @@ document.getElementById("fileInput").addEventListener("change", e => {
             });
             
             saveStorage();
-            showToast(`✅ Sukses! ${count} item dimuat`);
+            showToast(`✅ ${count} item dimuat`);
         } catch (err) {
             showToast("❌ Gagal membaca file Excel");
             console.error(err);
@@ -435,14 +363,14 @@ function filterTable() {
     }
 }
 
-/* ===== BARCODE SCANNING ===== */
+/* ===== BARCODE SCANNING PRECISION ===== */
 function toggleScan(){
     if(isScanning) return;
     
     const readerDiv = document.getElementById("reader");
     readerDiv.style.display = "block";
     
-    // Tambahkan garis sensor
+    // Tambahkan Garis Laser
     if(!document.getElementById("scan-line-overlay")) {
         const line = document.createElement("div");
         line.id = "scan-line-overlay";
@@ -452,11 +380,11 @@ function toggleScan(){
 
     html5QrCode = new Html5Qrcode("reader");
     
-    // Konfigurasi Sensitivitas Tinggi
+    // Konfigurasi Sensitivitas Tinggi & Fokus
     const config = { 
-        fps: 30, // Frame per second tinggi
-        qrbox: { width: 350, height: 150 }, // Kotak lebar untuk barcode
-        aspectRatio: 1.777778 
+        fps: 60, // Frame rate sangat tinggi
+        qrbox: { width: 240, height: 150 }, // Area scan fokus
+        aspectRatio: 1.0 
     };
     
     html5QrCode.start(
@@ -469,7 +397,7 @@ function toggleScan(){
         document.getElementById("btnScan").innerText = "⏳ Scanning...";
         document.getElementById("btnScan").classList.add("btn-danger");
     }).catch(err => {
-        showToast("❌ Kamera tidak bisa diakses");
+        showToast("❌ Kamera gagal diakses");
         readerDiv.style.display = "none";
     });
 }
@@ -479,47 +407,42 @@ function onScanSuccess(decodedText) {
     try {
         beepSound.currentTime = 0;
         beepSound.play();
-    } catch(e){ console.log("Audio error"); }
+    } catch(e){ console.log("Audio blocked"); }
 
-    // Isi input
     document.getElementById("search").value = decodedText;
     filterTable();
     
     const visibleRows = [...tbody.querySelectorAll("tr")].filter(r => r.style.display !== "none");
     
     if(visibleRows.length === 1){
-        stopScan();
+        stopScan(); // Auto stop jika ketemu
         visibleRows[0].classList.add("found-highlight");
         visibleRows[0].querySelector("input").focus();
-        showToast("✅ Part ditemukan!");
+        showToast("✅ Berhasil!");
         if(navigator.vibrate) navigator.vibrate(200);
     } else {
-        showToast(`⚠️ Ditemukan ${visibleRows.length} part.`);
-        // Jika ketemu banyak, jangan stop scan, biarkan user scan lagi atau tutup manual
+        showToast(`⚠️ Ketemu ${visibleRows.length} part`);
     }
 }
 
-function onScanFailure(error) { 
-    // Biarkan diam saja agar tidak mengganggu, error akan muncul jika tidak ada barcode
-}
+function onScanFailure(error) { }
 
 function stopScan() {
     if(html5QrCode && isScanning) {
         html5QrCode.stop().then(() => {
             const readerDiv = document.getElementById("reader");
             readerDiv.style.display = "none";
-            // Hapus garis sensor
             const line = document.getElementById("scan-line-overlay");
             if(line) line.remove();
             
-            document.getElementById("btnScan").innerText = "📷 Scan Barcode";
+            document.getElementById("btnScan").innerText = "📷 Scan";
             document.getElementById("btnScan").classList.remove("btn-danger");
             isScanning = false;
         }).catch(err => console.error(err));
     }
 }
 
-/* ===== STORAGE FUNCTIONS ===== */
+/* ===== STORAGE ===== */
 function saveStorage() {
     const data = [];
     tbody.querySelectorAll("tr").forEach(r => {
@@ -536,7 +459,7 @@ function saveStorage() {
 
 function manualSave() {
     saveStorage();
-    showToast("💾 Data berhasil disimpan!");
+    showToast("💾 Data disimpan!");
 }
 
 function loadStorage() {
