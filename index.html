@@ -176,15 +176,36 @@ input[type="number"] {
 .badge.minus { background: #FEE2E2; color: var(--danger); }
 .badge.zero { background: #F3F4F6; color: var(--neutral); }
 
-/* SCANNER AREA */
+/* SCANNER AREA & OVERLAY */
 #reader {
     margin: 20px auto;
-    border: 2px dashed var(--border);
     border-radius: 12px;
     overflow: hidden;
     background: #000;
     max-width: 400px;
+    position: relative; /* Penting untuk overlay */
     display: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* Garis Sensor Tengah */
+.scanner-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--primary);
+    box-shadow: 0 0 15px 5px rgba(220, 38, 38, 0.7); /* Glow Merah */
+    z-index: 99;
+    pointer-events: none; /* Agar tidak menghalangi sentuhan */
+    animation: scanMove 2s infinite linear; /* Animasi gerak */
+}
+
+@keyframes scanMove {
+    0% { top: 30%; opacity: 0.8; }
+    50% { top: 70%; opacity: 1; }
+    100% { top: 30%; opacity: 0.8; }
 }
 
 /* FOOTER ACTIONS */
@@ -236,7 +257,7 @@ input[type="number"] {
 
 <header>
     <h2>📦 Stock Opname Sparepart</h2>
-    <span>v2.2 Save Feature</span>
+    <span>v2.3 Pro Scanner</span>
 </header>
 
 <div class="container">
@@ -253,7 +274,6 @@ input[type="number"] {
                 <input type="file" id="fileInput" accept=".xlsx,.xls" style="background:none; padding:10px;">
             </div>
             
-            <!-- Tombol Simpan Baru -->
              <div class="input-group" style="justify-content: flex-end;">
                 <span class="label">&nbsp;</span>
                 <button class="btn btn-success" onclick="manualSave()">💾 Simpan Data</button>
@@ -276,7 +296,9 @@ input[type="number"] {
         </div>
 
         <!-- Scanner Preview -->
-        <div id="reader"></div>
+        <div id="reader">
+            <!-- Garis Scanner akan dimasukkan via JS -->
+        </div>
 
         <div class="table-wrapper">
             <table>
@@ -306,11 +328,17 @@ input[type="number"] {
 
 <div id="toast">Notifikasi</div>
 
+<!-- Audio Beep Base64 (Tidak perlu file eksternal) -->
+<audio id="successSound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp+ej35qYF9lc4GKkJSPiIV9dG1wdn6Gj5SVkIuFfHRvcXaBh46VkI2Jgnx0cXd9hYyTkomHgXx1c3h+g4qRjoqGgHx2dnh/hYmPioeEfnd2eX6EioyJhoN/eHZ4foOIi4mGgn98eHl9goiKiIWBf3x4eX2Bh4qHhIB/fHp6foGGioaDf356e3uAhImHgn9+e3x+gISJhYJ/fXt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhYJ/fHt8foCEiIWCf3x7fH6AhIiFgn98e3x+gISIhQ=="></audio>
+
 <script>
 const tbody = document.getElementById("tbody");
 const storageKey = "opnameDataModern";
 let html5QrCode = null;
 let isScanning = false;
+
+// Base64 Audio Beep singkat
+const beepSound = document.getElementById("successSound");
 
 /* ===== INIT ===== */
 window.onload = () => {
@@ -378,7 +406,7 @@ function calc(input) {
     el.innerText = (selisih > 0 ? "+" : "") + selisih;
     
     el.className = "badge " + (selisih > 0 ? "plus" : selisih < 0 ? "minus" : "zero");
-    saveStorage(); // Auto-save setiap perubahan
+    saveStorage();
 }
 
 /* ===== SEARCH & FILTER ===== */
@@ -414,9 +442,22 @@ function toggleScan(){
     const readerDiv = document.getElementById("reader");
     readerDiv.style.display = "block";
     
+    // Tambahkan garis sensor
+    if(!document.getElementById("scan-line-overlay")) {
+        const line = document.createElement("div");
+        line.id = "scan-line-overlay";
+        line.className = "scanner-line";
+        readerDiv.appendChild(line);
+    }
+
     html5QrCode = new Html5Qrcode("reader");
     
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    // Konfigurasi Sensitivitas Tinggi
+    const config = { 
+        fps: 30, // Frame per second tinggi
+        qrbox: { width: 350, height: 150 }, // Kotak lebar untuk barcode
+        aspectRatio: 1.777778 
+    };
     
     html5QrCode.start(
         { facingMode: "environment" }, 
@@ -434,6 +475,13 @@ function toggleScan(){
 }
 
 function onScanSuccess(decodedText) {
+    // Mainkan Suara
+    try {
+        beepSound.currentTime = 0;
+        beepSound.play();
+    } catch(e){ console.log("Audio error"); }
+
+    // Isi input
     document.getElementById("search").value = decodedText;
     filterTable();
     
@@ -447,15 +495,23 @@ function onScanSuccess(decodedText) {
         if(navigator.vibrate) navigator.vibrate(200);
     } else {
         showToast(`⚠️ Ditemukan ${visibleRows.length} part.`);
+        // Jika ketemu banyak, jangan stop scan, biarkan user scan lagi atau tutup manual
     }
 }
 
-function onScanFailure(error) { }
+function onScanFailure(error) { 
+    // Biarkan diam saja agar tidak mengganggu, error akan muncul jika tidak ada barcode
+}
 
 function stopScan() {
     if(html5QrCode && isScanning) {
         html5QrCode.stop().then(() => {
-            document.getElementById("reader").style.display = "none";
+            const readerDiv = document.getElementById("reader");
+            readerDiv.style.display = "none";
+            // Hapus garis sensor
+            const line = document.getElementById("scan-line-overlay");
+            if(line) line.remove();
+            
             document.getElementById("btnScan").innerText = "📷 Scan Barcode";
             document.getElementById("btnScan").classList.remove("btn-danger");
             isScanning = false;
@@ -478,7 +534,6 @@ function saveStorage() {
     localStorage.setItem("tanggal_mod", document.getElementById("tanggal").value);
 }
 
-// Fungsi Simpan Manual (Dipanggil tombol)
 function manualSave() {
     saveStorage();
     showToast("💾 Data berhasil disimpan!");
@@ -489,7 +544,6 @@ function loadStorage() {
     tbody.innerHTML = "";
     if(data.length > 0) {
         data.forEach((d, i) => addRow(i + 1, d.part, d.desc, d.qty, d.fisik));
-        showToast("📂 Data sebelumnya dimuat");
     }
 }
 
